@@ -1,7 +1,10 @@
-bucket=`python config_dict.py bucket`
+# path to your google cloud storage bucket
+bucket="gs://nina_other_bucket" 
 gsutil cp -r merged_data ${bucket}
 
-ee_folder=`python config_dict.py sampled_data_dir`
+# path to sampled data directory in google earthengine
+# should match sampled_data_dir in config.py
+ee_folder="projects/crowtherlab/nina/treemap/sampled_data_test" 
 earthengine create folder $ee_folder
 
 for f in `gsutil ls ${bucket}/merged_data/`; do

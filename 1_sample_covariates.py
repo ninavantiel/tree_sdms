@@ -1,24 +1,14 @@
-from time import sleep
-import multiprocessing
-import sys
-import os
-import pandas as pd
-from functools import partial
-from contextlib import contextmanager
-import ee
-ee.Initialize()
-
-from config_dict import *
+from config import *
 
 # Species to sample is passed as a command line argument
 # Run script in command line with "python 1_sampled_covariates.py [species_name]"
-speciesOfInterest = sys.argv[1]
+species = sys.argv[1]
 
-outdir = "sampled_data/" + speciesOfInterest + "/"
-outfile = "merged_data/" + speciesOfInterest + ".csv"
+outdir = "sampled_data/" + species + "/"
+outfile = "merged_data/" + species + ".csv"
 
 # Get feature collection of occurences of species of interest 
-points = ee.FeatureCollection(config_dict_get('species_occurence_fc')).filter(ee.Filter.eq('species', speciesOfInterest))
+points = ee.FeatureCollection(species_occurence_fc).filter(ee.Filter.eq('species', species))
 n_points = points.size().getInfo()
 
 # Minimum number of points to run sampling script
@@ -34,7 +24,7 @@ GRID_WIDTH = 1 if n_points < 1000 else (10 if n_points < 10000 else 30)
 NPROC = 50
 
 # Composite multiband image to sample
-compositeToUse = ee.Image(config_dict_get('composite_to_sample'))
+compositeToUse = ee.Image(composite_to_sample)
 
 # Function to convert a FC to a pandas DataFrame
 def FCDFconv(fc):
@@ -166,8 +156,8 @@ def poolcontext(*args, **kwargs):
 
 if __name__ == '__main__':
   if points.size().getInfo() < min_n_points:
-    sys.exit(f"* {speciesOfInterest}: {n_points} points -> no sampling")
-  print(f"*** {speciesOfInterest}: {n_points} points to sample")
+    sys.exit(f"* {species}: {n_points} points -> no sampling")
+  print(f"*** {species}: {n_points} points to sample")
   if not os.path.exists(outdir): os.makedirs(outdir)
   else: sys.exit("ERROR -> sampled_data dir exists but merged_data file does not exist")
 
