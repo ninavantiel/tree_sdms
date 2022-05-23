@@ -6,23 +6,29 @@ Project description...
 code run with Python 3.8.13, Google Earth Engine, gsutil, ...
 
 ## Prepare data
-`config_dict.py` contains variables to share across all scripts, such as paths to earthengine files and directories. These variables can be accessed from a python script with `from config_dict import *; config_dict_get("VARIABLE_NAME")` or from a bash script with `python config_dict.py VARIABLE NAME`
+`config.py` contains variables and functions to share across all scripts, such as paths to earthengine files and directories. These are imported with `from config import *`.
+
+
 - input data
 
 ## Run modelling pipeline for species of interest
 
-### Sample covariates
+### 1) Sample covariates
 Get model covariate values for species occurence locations
 
 - Run bash script `1_run_sample_covariates.sh` to run python script `1_sample_covariates.py` for each species in `species_list.csv`
-- Run bash script `1_upload_sampled_covariates.sh` to upload locally saved csv files to earthengine
+ - Modify grid size and number of concurrent processors to use in `1_sample_covariates.py`
+- Run bash script `1_upload_sampled_covariates.sh` to upload locally saved csv files to earthengine via GCSB
+  - Adapt the path to your GCSB and to the earthengine directory for sampled data (should match `sampled_data_dir` in `config.py`)
 
-Modify minimum number of points per species to run sampling script, grid size and number of concurrent processors to use in `1_sample_covariates.py`
 
-2) Prepare occurences
+### 2) Prepare occurrences
+Format species occurrence with sampled covariate values, specifically aggregating points to the pixel level, removing all-null points and formatting covariate values
 
-3) Compute range of interest
+- Run bash script `2_run_occurrence_preparation.sh`to run python script `2_occurrence_preparation.py` for each species in `species_list.csv` for which the covariate values have already been sampled and the occurrence preparation script has not yet been run.
 
-4) Model cross-validation
+### 3) Compute range of interest
 
-5) Final model and mapping
+### 4) Model cross-validation
+
+### 5) Final model and mapping

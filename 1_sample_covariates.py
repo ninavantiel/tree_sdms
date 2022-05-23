@@ -11,16 +11,11 @@ outfile = "merged_data/" + species + ".csv"
 points = ee.FeatureCollection(species_occurence_fc).filter(ee.Filter.eq('species', species))
 n_points = points.size().getInfo()
 
-# Minimum number of points to run sampling script
-# Covariate data is not sampled for species with less points
-min_n_points = 20
-
-# Number of gridcells to use (gridsize = GRID_WIDTH*GRID_WIDTH)
+# Number of gridcells to use (gridsize = GRID_WIDTH*GRID_WIDTH) 
 GRID_WIDTH = 1 if n_points < 1000 else (10 if n_points < 10000 else 30)
 
-# Number of concurrent processors to use
-# Try 50 first. Decrease if getting lots of "Too many aggregation" errors (> 10/minute).
-# Should be able to use at least 20. 
+# Number of concurrent processors to use 
+# Try 50 first. Decrease if getting lots of "Too many aggregation" errors (> 10/minute). Should be able to use at least 20. 
 NPROC = 50
 
 # Composite multiband image to sample
@@ -169,7 +164,7 @@ if __name__ == '__main__':
     geometryType= 'polygon',
     eightConnected= False,
     labelProperty= 'zone',
-    maxPixels= 1E13
+    maxPixels= 1e13
   )
 
   grids = generateGrid(unboundedGeo, GRID_WIDTH)
