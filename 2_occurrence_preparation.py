@@ -1,6 +1,6 @@
 from config import *
 
-# Species to sample is passed as a command line argument
+# Species for which to prepare occurrences is passed as a command line argument
 # Run script in command line with "python 2_occurrence_preparation.py [species_name]"
 species = sys.argv[1]
 
@@ -54,7 +54,7 @@ def format_feature(f):
 
 # Function to format sampeld points: 
 # - Remove occurences with None values or all 0 values
-# - Format feature to make sure all covariate and ecoregion values are numerical
+# - Format features to make sure all covariate and ecoregion values are numerical
 # - Select only formatted covariate and ecoregion values and set presence = 1
 def format_points(sampled_points):
 	sampled_points = sampled_points.filter(ee.Filter.Or(
@@ -82,27 +82,21 @@ if __name__ == '__main__':
 
 	# Format sampling points
 	sampled_points = format_points(sampled_points)
-	nobs = sampled_points.size().getInfo()
-	print(f"{nobs} points after formatting")
+	n_points = sampled_points.size().getInfo()
+	print(f"{n_points} points after formatting")
 
 	# If less than min_n_points non-null occurences, species will not be modelled
-	if nobs < min_n_points :
+	if n_points < min_n_points :
 		sys.exit(f"Less than {min_n_points} points -> no modelling")
 
 	# Aggregate observations to the pixel level, keeping only one presence per pixel
 	sampled_points = sampled_points.distinct('.geo')		
-	nobs = sampled_points.size().getInfo()
-	print(f"{nobs} points after aggregation")
+	n_points = sampled_points.size().getInfo()
+	print(f"{n_points} points after aggregation")
 
 	# If less than min_n_points non-null occurences, species will not be modelled
-	if nobs < min_n_points :
+	if n_points < min_n_points :
 		sys.exit(f"Less than {min_n_points} points -> no modelling")
 
 	# Export feature collection to earthengine asset
-	export = ee.batch.Export.table.toAsset(
-		collection = sampled_points,
-		description =  'prepped_points_' + species,
-		assetId = prepped_points_dir + '/' + species
-	)
-	export.start()
-	print(f"{species}: occurrence preparation export started")	
+	export_fc(sampled_points, 'prepped_occurrences_' + species, prepped_occurrences_dir + '/' + species)

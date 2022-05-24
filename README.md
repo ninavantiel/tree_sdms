@@ -8,7 +8,6 @@ code run with Python 3.8.13, Google Earth Engine, gsutil, ...
 ## Prepare data
 `config.py` contains variables and functions to share across all scripts, such as paths to earthengine files and directories. These are imported with `from config import *`.
 
-
 - input data
 
 ## Run modelling pipeline for species of interest
