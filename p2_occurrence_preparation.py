@@ -53,17 +53,14 @@ def format_feature(f):
     })
 
 # Function to format sampeld points: 
-# - Remove occurences with None values or all 0 values
-# - Format features to make sure all covariate and ecoregion values are numerical
-# - Select only formatted covariate and ecoregion values and set presence = 1
 def format_points(sampled_points):
+	# Remove occurences with None values or all 0 values
 	sampled_points = sampled_points.filter(ee.Filter.Or(
 		ee.Filter.neq('SG_Coarse_fragments_005cm','None'), ee.Filter.neq('SG_Silt_Content_005cm','None'), 
 		ee.Filter.neq('SG_Soil_pH_H2O_005cm','None'), ee.Filter.neq('CHELSA_bio12_1981_2010_V2_1','None'), 
 		ee.Filter.neq('CHELSA_bio15_1981_2010_V2_1','None'), ee.Filter.neq('CHELSA_bio1_1981_2010_V2_1','None'),
 		ee.Filter.neq('CHELSA_bio4_1981_2010_V2_1','None'), ee.Filter.neq('CHELSA_gsl_1981_2010_V2_1','None'), 
-		ee.Filter.neq('CHELSA_npp_1981_2010_V2_1','None'), ee.Filter.neq('Pixel_Long','None'), 
-		ee.Filter.neq('Pixel_Lat','None'), ee.Filter.neq('Resolve_Ecoregion','None')
+		ee.Filter.neq('CHELSA_npp_1981_2010_V2_1','None'), ee.Filter.neq('Resolve_Ecoregion','None')
 	)).filter(ee.Filter.Or(
 		ee.Filter.neq('SG_Coarse_fragments_005cm',0), ee.Filter.neq('SG_Silt_Content_005cm',0), 
 		ee.Filter.neq('SG_Soil_pH_H2O_005cm',0), ee.Filter.neq('CHELSA_bio12_1981_2010_V2_1',0), 
@@ -71,6 +68,18 @@ def format_points(sampled_points):
 		ee.Filter.neq('CHELSA_bio4_1981_2010_V2_1',0), ee.Filter.neq('CHELSA_gsl_1981_2010_V2_1',0), 
 		ee.Filter.neq('CHELSA_npp_1981_2010_V2_1',0), ee.Filter.neq('Resolve_Ecoregion',0)
 	))
+
+	# Create geometries if Pixel_Lat and Pixel_Long were not set as lat/lon 
+	# Usually due to the presence of 'None' values in Pixe_Lat and Pixel_Long (eg. for points in waterbodies)
+	prop_names = sampled_points.first().propertyNames().getInfo()
+	if 'Pixel_Long' in prop_names and 'Pixel_Lat' in prop_names:
+		sampled_points = sampled_points.map(lambda f: f.setGeometry(ee.Geometry.Point([
+            ee.Algorithms.If(ee.Algorithms.ObjectType(f.get('Pixel_Long')).compareTo('String').eq(0), ee.Number.parse(f.getString('Pixel_Long')), f.getNumber('Pixel_Long')),
+            ee.Algorithms.If(ee.Algorithms.ObjectType(f.get('Pixel_Lat')).compareTo('String').eq(0), ee.Number.parse(f.getString('Pixel_Lat')), f.getNumber('Pixel_Lat'))
+        ])))
+	
+	# Format features to make sure all covariate and ecoregion values are numerical
+	# Select only formatted covariate and ecoregion values and set presence = 1
 	sampled_points = sampled_points.map(format_feature).map(
 		lambda f: f.select(model_covariate_names + ['Resolve_Ecoregion']).set({'presence': 1}))
 	return sampled_points

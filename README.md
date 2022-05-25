@@ -6,19 +6,22 @@ Project description...
 code run with Python 3.8.13, Google Earth Engine, gsutil, ...
 
 ## Prepare data
-`config.py` contains variables and functions to share across all scripts, such as paths to earthengine files and directories. These are imported with `from config import *`.
+`config.py` contains variables and functions to share across all scripts. These are imported in other python scripts with `from config import *`. Variable values are accessible in bash scripts with `python3 config.py "VAR_NAME"`, replacing `VAR_NAME` with the name of the variable of interest.
 
 - input data
+ - treemap_data_all_species
+ - pseudoabsences
+ - gts and country geometries
+
 
 ## Run modelling pipeline for species of interest
 
 ### 1) Sample covariates
 Get model covariate values for species occurence locations
 
-- Run bash script `1_run_sample_covariates.sh` to run python script `1_sample_covariates.py` for each species in `species_list.csv`
- - Modify grid size and number of concurrent processors to use in `1_sample_covariates.py`
-- Run bash script `1_upload_sampled_covariates.sh` to upload locally saved csv files to earthengine via GCSB
-  - Adapt the path to your GCSB and to the earthengine directory for sampled data (should match `sampled_data_dir` in `config.py`)
+- Run bash script `run_1_sample_covariates.sh` to run python script `p1_sample_covariates.py` for each species in `species_list.csv`
+- Run bash script `upload_1_sample_covariates.sh` to upload locally saved csv files to earthengine via GCSB
+
 
 
 ### 2) Prepare occurrences
