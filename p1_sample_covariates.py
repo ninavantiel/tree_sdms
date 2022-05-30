@@ -146,7 +146,7 @@ def poolcontext(*args, **kwargs):
     yield pool
     pool.terminate()
 
-# Merge sampled data files into one
+# Merge sampled data files into one and remove non-merged dats
 def merge_sampled_data(outdir, outfile):
   sampled_data = [outdir + f for f in os.listdir(outdir) if os.path.isfile(outdir + f)]
   print(f"{len(sampled_data)} files to merge")
@@ -165,51 +165,26 @@ def merge_sampled_data(outdir, outfile):
       pass
   fout.close()
 
-# Check that final output file contains enough rows and remove temporary files and directory
-# If there are not enough rows, all created files and directories are removed
-def check_output(outdir, outfile, n_points, gridsize):
-  with open(outfile) as f: n_lines = sum(1 for line in f)
-  if n_lines >= n_points + 1: 
-    print("Sampling successfull! Removing non-merged files")
-    if gridsize != 1: 
-      [os.remove(f) for f in sampled_data]
-      os.rmdir(outdir)
-  else:
-    print(f"ERROR -> {n_lines} lines for {n_points} sampled points in {outfile}. Removing all files")
-    os.remove(outfile)
-    [os.remove(f) for f in sampled_data]
-    os.rmdir(outdir)
+  [os.remove(f) for f in sampled_data]
+  os.rmdir(outdir)
 
-if __name__ == '__main__':
-  outdir = sampled_data_localdir + "/" + species + "/"
-  outfile = merged_data_localdir + "/" + species + ".csv"
-  if os.path.exists(outdir): sys.exit(f"ERROR -> sampled_data/{species} directory exists but merged_data/{species}.csv does not exist")
-
-  # Get feature collection of occurences of species of interest 
-  points = ee.FeatureCollection(species_occurence_fc).filter(ee.Filter.eq('species', species))
-  
-  # If there are less than min_n_points, exit script
-  n_points = points.size().getInfo()
-  if n_points < min_n_points:
-    sys.exit(f"* {species}: {n_points} points -> no sampling")
-  print(f"*** {species}: {n_points} points to sample")
-
+def run_sampling(points, n_points, outdir, outfile):
   # Number of gridcells to use (gridsize = GRID_WIDTH*GRID_WIDTH) 
   grid_width = 1 if n_points < 1000 else (10 if n_points < 10000 else 30)
 
-  # If multiple files will be generated, create a directory
-  if grid_width != 1: os.makedirs(outdir)
-
   # Get column names of FC to sample
   origCols = list(FCDFconv(points.limit(1)).columns)
-  
+
   # Bands to sample: all bands in image plus variables present in FC to sample
   bands = composite.bandNames().getInfo()+origCols
 
   # Generate grid for sampling
   grids = generateGrid(unbounded_geo, grid_width)
   size = grids.size().getInfo()
-  print("Grid size: %d " % size)
+  print(f"Grid size: {size}")
+
+  # If multiple files will be generated, create a directory
+  if size != 1: os.makedirs(outdir)
 
   # Run sampling on each gridcell with multiprocessing
   with poolcontext(NPROC) as pool:
@@ -218,8 +193,47 @@ if __name__ == '__main__':
   # If grid was not of size 1, merge sampled data files
   if size != 1: merge_sampled_data(outdir, outfile)
 
-  # Check that final file has the correct number of rows and remove non-merged files if they exist
-  check_output(outdir, outfile, n_points, size)
+# Check that final output file contains enough rows 
+def upload_output(outfile, n_points, gcsb_path, asset_id):
+  with open(outfile) as f: n_lines = sum(1 for line in f)
+  print(f"{n_lines} in output for {n_points} in fc")
+  if n_lines < n_points + 1:  
+    print(f"ERROR -> {n_lines} lines for {n_points} sampled points in {outfile}")
+    os.remove(outfile)
+  else:
+    print("Sampling successfull!")
+    subprocess.run(['gsutil', 'cp', outfile, gcsb_path])
+    subprocess.run([earthengine, 'upload', 'table', '--x_column', 'Pixel_Long', '--y_column', 'Pixel_Lat', '--asset_id', asset_id, gcsb_path])
+  
+if __name__ == '__main__':
+  outdir = sampled_data_localdir + "/" + species + "/"
+  outfile = merged_data_localdir + "/" + species + ".csv"
+
+  # If sampled data dir exists, remove it and its content to start clean
+  if os.path.exists(outdir): 
+      outdir_ls = [outdir + f for f in os.listdir(outdir) if os.path.isfile(outdir + f)]
+      [os.remove(f) for f in outdir_ls]
+      os.rmdir(outdir)
+
+  # Get feature collection of occurences of species of interest 
+  points = ee.FeatureCollection(species_occurence_fc).filter(ee.Filter.eq('species', species))
+    
+  # If there are less than min_n_points, exit script
+  n_points = points.size().getInfo()
+  if n_points < min_n_points:
+    sys.exit(f"* {species}: {n_points} points -> no sampling")
+  print(f"*** {species}: {n_points} points to sample")
+
+  # If sampled data file exists, go directly to upload
+  if os.path.exists(outfile): print("Sampling already done, skipping to upload")
+  # If sampled data file does not exist, sample data
+  else: run_sampling(points, n_points, outdir, outfile)
+
+  # If final file has the correct number of rows, upload to earthengine
+  upload_output(outfile, n_points, bucket_path + '/merged_data/' + species + '.csv', sampled_data_dir + '/' + species)
+
+
+  
 
   
 

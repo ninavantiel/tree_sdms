@@ -25,34 +25,14 @@ def k_fold_cv(i, k, training_data, covariates):
 	return classification
 
 if __name__ == '__main__':
-	# Get range and occurrences filtered to range
-	species_range = ee.FeatureCollection(range_dir + '/' + species).geometry()
-	points = ee.FeatureCollection(prepped_occurrences_dir + '/' + species).filterBounds(species_range).map(lambda f: f.select(model_covariate_names + ['presence']))
-	n_points = points.size().getInfo()
-
-	# If less than min_n_points occurences, species will not be modelled
-	if n_points < min_n_points :
-		sys.exit(f"Less than {min_n_points} occurrences -> no modelling")
-	
-	# Get pseudoabsences points in range
-	pa_pool = ee.FeatureCollection(pseudoabsences).filterBounds(species_range)
-
-	# Prepare training data for modelling: subsample observations and/or pseudoabsences depending on number of points available
-	# A random number property is added to each feature for selection of folds for k-fold cross validation
-	[n_occ, n_pa, training_data] = generate_training_data(points, pa_pool)
-
-	# If there are less than 90 observations, select subset of covariates based on variable importance in simple random forest model
-	if n_occ < 90:
-		n_cov = math.floor(n_occ/10)
-		var_imp = ee.Classifier(models.get('RF_simple')).train(training_data, 'presence', model_covariate_names).explain().get('importance').getInfo()
-		covariates = nlargest(n_cov, var_imp, key = var_imp.get)
-		print(f"Less than 90 observations, {n_cov} covariates selected: {covariates}")
-	# If there are at least 90 observations, keep all covariates
-	else: covariates = model_covariate_names
-	print(covariates)
+	training_data, n_occ, n_pa, covariates, species_range = prepare_training_data(species)
+	if training_data == 'EXIT':
+		sys.exit()
 
 	# For each fold in the cross validation, train model and test on leave-out fold
 	# Export test classification for each fold separately
 	for i in range(k):
 		cv_i = k_fold_cv(i, k, training_data, covariates)
 		export_fc(cv_i, species + '_cv_fold_' + str(i), cross_validation_dir + '/' + species + '_fold_' + str(i))
+
+
