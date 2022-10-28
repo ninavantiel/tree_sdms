@@ -231,16 +231,3 @@ if __name__ == '__main__':
 
   # If final file has the correct number of rows, upload to earthengine
   upload_output(outfile, n_points, bucket_path + '/merged_data/' + species + '.csv', sampled_data_dir + '/' + species)
-
-
-  
-
-  
-
-  
-
-
-
-
-
-

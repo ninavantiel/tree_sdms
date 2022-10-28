@@ -65,11 +65,6 @@ if __name__ == '__main__':
 	export.start()
 
 	sdms_biome_area = sdms.map(get_sdm_biome_range_size).flatten()
-	export = ee.batch.Export.table.toDrive(
-		collection = sdms_biome_area,
-		description = 'sdms_biome_range_size',
-		folder = google_drive_folder
-	)
-	export.start()
+	export_table_to_drive(sdms_biome_area, 'sdms_biome_range_size')
 
 	

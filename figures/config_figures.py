@@ -6,6 +6,7 @@ except: sys.exit('ERROR starting earthengine python API')
 google_drive_folder = 'ETHZ/treemap'
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
+sdm_bboxes = ee.FeatureCollection('projects/crowtherlab/nina/treemap_figures/sdms_bbox')
 scale_to_use = sdms.first().projection().nominalScale()
 
 ## Potential forest: Bastin et al. potential tree cover >= 10%
@@ -24,3 +25,11 @@ unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88,
 
 ## Function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
+
+def export_table_to_drive(fc, filename):
+	export = ee.batch.Export.table.toDrive(
+		collection = fc,
+		description = filename,
+		folder = google_drive_folder
+	)
+	export.start()

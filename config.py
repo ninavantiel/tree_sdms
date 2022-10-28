@@ -1,15 +1,17 @@
-from time import sleep
-import multiprocessing
-import sys
-import os
-import random
-import math
-from heapq import nlargest
-import subprocess
-import pandas as pd
-from functools import partial
-from contextlib import contextmanager
-import ee
+try:
+	from time import sleep
+	import multiprocessing
+	import sys
+	import os
+	import random
+	import math
+	from heapq import nlargest
+	import subprocess
+	import pandas as pd
+	from functools import partial
+	from contextlib import contextmanager
+	import ee
+except ImportError: sys.exit('Not all packages are installed. \n Packages: time, multiprocessing, sys, os, random, math, heapq, subprocess, pandas, functools, contextlib, ee')
 
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
@@ -128,6 +130,7 @@ def prepare_training_data(species, max_n = 20000):
 	return training_data, n_occ, n_pa, covariates, species_range
 
 if __name__ == '__main__':
-	var_name = sys.argv[1]
-	print(globals()[var_name])
+	if len(sys.argv) > 1:
+		var_name = sys.argv[1]
+		print(globals()[var_name])
 
