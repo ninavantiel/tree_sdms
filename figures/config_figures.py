@@ -1,9 +1,12 @@
-import ee
+import os
+import pandas as pd
 
+import ee
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
-google_drive_folder = 'ETHZ/treemap'
+google_drive_folder = 'treemap'
+google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 sdm_bboxes = ee.FeatureCollection('projects/crowtherlab/nina/treemap_figures/sdms_bbox')
