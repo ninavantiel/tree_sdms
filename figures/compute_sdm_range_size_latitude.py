@@ -46,7 +46,7 @@ def get_sdm_biome_range_size(sdm):
  		lambda img: img.multiply(biome_image).set({'sdm': img.get('sdm'), 'species': sdm.get('system:index')})
  	)
 
- 	sdm_biome_areas = sdms_to_reduce.map(lambda img: ee.Feature(None, biome_dictionary.map(
+	sdm_biome_areas = sdms_to_reduce.map(lambda img: ee.Feature(None, biome_dictionary.map(
  		lambda name, num: img.eq(ee.Image.constant(num)).multiply(ee.Image.pixelArea()).rename('area').reduceRegion(
  			reducer = ee.Reducer.sum(), geometry = unbounded_geo, maxPixels = 1e13, scale = scale_to_use
  		).getNumber('area')
@@ -57,12 +57,7 @@ if __name__ == '__main__':
 	print(sdms.size().getInfo(), 'sdms in analysis')
 	
 	sdms_area_lat = sdms.map(get_sdm_range_size_lat)
-	export = ee.batch.Export.table.toDrive(
-		collection = sdms_area_lat,
-		description = 'sdms_range_size_latitude',
-		folder = google_drive_folder
-	)
-	export.start()
+	#export_table_to_drive(sdms_area_lat, 'sdms_range_size_latitude')
 
 	sdms_biome_area = sdms.map(get_sdm_biome_range_size).flatten()
 	export_table_to_drive(sdms_biome_area, 'sdms_biome_range_size')
