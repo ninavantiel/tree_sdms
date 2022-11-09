@@ -13,7 +13,7 @@ google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 earthengine_folder = 'users/ninavantiel/treemap/'
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
-sdm_bboxes = ee.FeatureCollection('projects/crowtherlab/nina/treemap_figures/sdms_bbox')
+sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox') #projects/crowtherlab/nina/treemap_figures/sdms_bbox')
 scale_to_use = sdms.first().projection().nominalScale()
 
 # ## Potential forest: Bastin et al. potential tree cover >= 10%
@@ -29,6 +29,10 @@ scale_to_use = sdms.first().projection().nominalScale()
 # ).remove(['N/A'])
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
+
+sdms_area_medianlat_drive_filename = 'sdms_area_medianlat_drive'
+sdms_area_medianlat_asset_filename = 'sdms_area_medianlat_asset'
+sdms_area_medianlat = ee.FeatureCollection(earthengine_folder + sdms_area_medianlat_asset_filename)
 
 # ## Function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
@@ -48,4 +52,15 @@ def export_table_to_asset(fc, filename):
 		assetId = earthengine_folder + filename
 
 	)
+	export.start()
+
+def export_image_to_asset(image, filename):
+	export = ee.batch.Export.image.toAsset(
+		image = image,
+		description = filename,
+		assetId = earthengine_folder + filename,
+		crs = 'EPSG:4326',
+		crsTransform = '[0.008333333333333333,0,-180,0,-0.008333333333333333,90]',
+		region = unbounded_geo,
+		maxPixels = int(1e13))
 	export.start()
