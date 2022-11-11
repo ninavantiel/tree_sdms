@@ -14,6 +14,7 @@ echo `expr $n_cv_ls / 3` species cross validation done
 		if [[ "$ranges_ls" == *"$x"* ]]; then
 			n_x=`echo $cv_ls | grep -o $x | wc -l`
 			if [[ $n_x -eq 0 ]]; then
+				echo "**" $x
 				python3 p4_cross_validation.py ${x}
 			elif [[ ! $n_x -eq 3 ]]; then
 				echo ERROR $x has $n_x cv assets

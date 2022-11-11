@@ -1,13 +1,13 @@
 # import os
-# import pandas as pd
-# import numpy as np 
-# import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
 
 import ee
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
-google_drive_folder = 'treemap'
+google_drive_folder = 'treemap/'
 google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
 earthengine_folder = 'users/ninavantiel/treemap/'
@@ -21,12 +21,12 @@ scale_to_use = sdms.first().projection().nominalScale()
 # ## Current forests: Hansen et al. tree cover in 2010 >= 10% (intersected with potential forests)
 # current_forest = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10).And(potential_forest)
 
-# ecoregions = ee.FeatureCollection('projects/crowtherlab/nina/treemap/Ecoregions')
-# biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
-# biome_dictionary = ee.Dictionary.fromLists(
-# 	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), 
-# 	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM')
-# ).remove(['N/A'])
+ecoregions = ee.FeatureCollection('projects/crowtherlab/nina/treemap/Ecoregions')
+biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
+biome_dictionary = ee.Dictionary.fromLists(
+	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), 
+	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM')
+)
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
