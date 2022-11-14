@@ -7,7 +7,7 @@ import ee
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
-google_drive_folder = 'treemap/'
+google_drive_folder = 'treemap'
 google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
 earthengine_folder = 'users/ninavantiel/treemap/'
@@ -27,12 +27,12 @@ biome_dictionary = ee.Dictionary.fromLists(
 	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), 
 	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM')
 )
-
+elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
-sdms_area_medianlat_drive_filename = 'sdms_area_medianlat_drive'
-sdms_area_medianlat_asset_filename = 'sdms_area_medianlat_asset'
-sdms_area_medianlat = ee.FeatureCollection(earthengine_folder + sdms_area_medianlat_asset_filename)
+sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
+sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
+sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
 
 # ## Function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()

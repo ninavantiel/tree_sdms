@@ -4,8 +4,6 @@ from config_figures import *
 def compute_species_stats_ecoregion(ecoid):    
     # get eco_geo by merging geometries of all ecoregion features with ECO_ID = ecoid (for some ECO_IDs there are mutliple features to take into account) and get ecoregion area
     eco_geo = ecoregions.filter(ee.Filter.eq('ECO_ID', ecoid)).geometry()
-    eco_area = ee.Image.pixelArea().reduceRegion(reducer = ee.Reducer.sum(), geometry = eco_geo, scale = scale_to_use, maxPixels = 1e13).getNumber('area')
-
     #eco = ecoregions.filter(ee.Filter.eq('ECO_ID', ecoid)).first()
     
     # reduce species pool by selecting species whose SDM bounding box intersects with eco_geo
@@ -61,9 +59,9 @@ if __name__ == '__main__':
             export_table_to_drive(biome_ecoregions_species_stats, 'ecoregions_species_stats_v2_biome_' + str(biome_num))
     '''
 
-    n_chunks = 2
+    n_chunks = 10
     for biome, biome_num in forest_biomes.items():
-        if biome_num in [1, 12]:
+        if biome_num in [1]:
             print(biome, biome_num)
 
             # get distinct ECO_ID values for the biome
