@@ -7,36 +7,36 @@ import ee
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
+#google drive
 google_drive_folder = 'treemap'
 google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
+#earthengine assets
 earthengine_folder = 'users/ninavantiel/treemap/'
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
-sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox') #projects/crowtherlab/nina/treemap_figures/sdms_bbox')
+sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox') 
 scale_to_use = sdms.first().projection().nominalScale()
-
-# ## Potential forest: Bastin et al. potential tree cover >= 10%
-# potential_forest = ee.Image('projects/crowtherlab/nina/treemap_figures/bastin_potential_tree_cover').gte(10) 
-# ## Current forests: Hansen et al. tree cover in 2010 >= 10% (intersected with potential forests)
-# current_forest = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10).And(potential_forest)
-
+forest_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) # current forests = Hansen et al. tree cover in 2010 >= 10% 
 ecoregions = ee.FeatureCollection('projects/crowtherlab/nina/treemap/Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
-biome_dictionary = ee.Dictionary.fromLists(
-	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), 
-	ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM')
-)
+biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
+#filenames
 sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
 sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
 sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
 
-# ## Function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
+sdms_forest_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
+sdms_forest_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_fc'
+sdms_forest_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest_area_lat_elev_asset_filename)
+
+#function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
 
+#export functions
 def export_table_to_drive(fc, filename):
 	export = ee.batch.Export.table.toDrive(
 		collection = fc,
@@ -59,6 +59,17 @@ def export_image_to_asset(image, filename):
 		image = image,
 		description = filename,
 		assetId = earthengine_folder + filename,
+		crs = 'EPSG:4326',
+		crsTransform = '[0.008333333333333333,0,-180,0,-0.008333333333333333,90]',
+		region = unbounded_geo,
+		maxPixels = int(1e13))
+	export.start()
+
+def export_image_to_drive(image, filename):
+	export = ee.batch.Export.image.toDrive(
+		image = image,
+		description = filename,
+		folder = google_drive_folder,
 		crs = 'EPSG:4326',
 		crsTransform = '[0.008333333333333333,0,-180,0,-0.008333333333333333,90]',
 		region = unbounded_geo,
