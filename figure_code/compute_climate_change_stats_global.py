@@ -1,8 +1,7 @@
 from config_figures import *
 
-
 # function to compute per ecoregion statistics of SDM changes when applied to present (1981-2010) and future (2071-2100 SSP 5.85) climate scenarios
-def compute_species_stats_ecoregion(ecoid):    
+def compute_eco_stats_ecoregion(ecoid):    
     # get eco_geo by merging geometries of all ecoregion features with ECO_ID = ecoid (for some ECO_IDs there are mutliple features to take into account) and get ecoregion area
     eco_geo = ecoregions.filter(ee.Filter.eq('ECO_ID', ecoid)).geometry()
     # eco_area = ee.Image.pixelArea().reduceRegion(reducer = ee.Reducer.sum(), geometry = eco_geo, scale = scale_to_use, maxPixels = 1e13).getNumber('area')
@@ -16,66 +15,15 @@ def compute_species_stats_ecoregion(ecoid):
         ))
     ).filter(ee.Filter.Or(ee.Filter.eq('in_eco_present', 1), ee.Filter.eq('in_eco_future', 1)))
 
-    # compute SDM area in ecoregion for each species for present and future climate projections and relative change between both [(area_future - area_present) / area_present]
-    sdm_area = sdms_eco.map(lambda sdm: sdm.set(sdm.multiply(ee.Image.pixelArea()).rename(['area_present','area_future']).reduceRegion(
-        reducer = ee.Reducer.sum(), geometry = eco_geo, scale = scale_to_use, maxPixels = 1e13
-    ))).map(lambda sdm: sdm.set('area_change', (sdm.getNumber('area_future').subtract(sdm.getNumber('area_present'))).divide(sdm.getNumber('area_present'))))
-
-    sdms_eco_area_medianlat = sdms_area_medianlat.filter(ee.Filter.inList('species', sdms_eco.aggregate_array('system:index'))).map(lambda f: f.set({
+    # get SDM latitude and elevation shift for each species in ecoregion for present and future climate projections 
+    sdms_eco_area_lat_elev = sdms_area_lat_elev_fc.filter(ee.Filter.inList('species', sdms_eco.aggregate_array('system:index'))).map(lambda f: f.set({
         'in_eco_present': sdms_eco.filter(ee.Filter.eq('system:index', f.get('species'))).first().get('in_eco_present'),
         'in_eco_future': sdms_eco.filter(ee.Filter.eq('system:index', f.get('species'))).first().get('in_eco_future')
     })).map(lambda f: f.set({
-        'area_rel_change': ee.Algorithms.If(f.getNumber('in_eco_present').neq(0), f.getNumber('area_2071_2100_ssp585').divide(f.getNumber('area_1981_2010')), -999), 
-        'medianlat_shift': ee.Algorithms.If(
-            f.getNumber('in_eco_present').neq(0).And(f.getNumber('in_eco_future').neq(0)), 
-            f.getNumber('medianlat_2071_2100_ssp585').subtract(f.getNumber('medianlat_1981_2010')), -999
-        )
+        'latitude_shift': ee.Algorithms.If(f.getNumber('in_eco_present').neq(0).And(f.getNumber('in_eco_future').neq(0)), f.getNumber('latitude_2071_2100_ssp585').subtract(f.getNumber('latitude_1981_2010')), -999),
+        'elevation_shift': ee.Algorithms.If(f.getNumber('in_eco_present').neq(0).And(f.getNumber('in_eco_future').neq(0)), f.getNumber('elevation_2071_2100_ssp585').subtract(f.getNumber('elevation_1981_2010')), -999)
     }))
-    '''
-    print(sdms_eco_area_medianlat.first().toDictionary().getInfo())
-    print(sdms_eco_area_medianlat.filter(ee.Filter.eq('in_eco_present',0)).first().toDictionary().getInfo())
-    print(sdms_eco_area_medianlat.filter(ee.Filter.eq('in_eco_future',0)).first().toDictionary().getInfo())
-
-    # compute median SDM area in ecoregion across species for present and future climate projections and median relative change in area
-    median_area_present = sdm_area.filter(ee.Filter.eq('in_eco_present', 1)).aggregate_array('area_present').reduce(ee.Reducer.median())
-    median_area_future = sdm_area.filter(ee.Filter.eq('in_eco_future', 1)).aggregate_array('area_future').reduce(ee.Reducer.median())
-    median_area_change = sdm_area.filter(ee.Filter.eq('in_eco_present', 1)).aggregate_array('area_change').reduce(ee.Reducer.median())
-  
-    print(
-        sdms_eco_area_medianlat.aggregate_array('area_1981_2010').reduce(ee.Reducer.median()).getInfo(), 
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('area_1981_2010').reduce(ee.Reducer.median()).getInfo(),
-        median_area_present.getInfo()
-    )
-
-    print(
-        sdms_eco_area_medianlat.aggregate_array('area_2071_2100_ssp585').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('area_2071_2100_ssp585').reduce(ee.Reducer.median()).getInfo(),
-        median_area_future.getInfo()
-    )
-
-    print(
-        sdms_eco_area_medianlat.aggregate_array('area_rel_change').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('area_rel_change').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('area_rel_change', -999)).aggregate_array('area_rel_change').reduce(ee.Reducer.median()).getInfo(),
-        median_area_change.getInfo()
-    )
-
-    print(
-        sdms_eco_area_medianlat.aggregate_array('medianlat_1981_2010').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('medianlat_1981_2010').reduce(ee.Reducer.median()).getInfo()
-    )
-
-    print(
-        sdms_eco_area_medianlat.aggregate_array('medianlat_2071_2100_ssp585').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('medianlat_2071_2100_ssp585').reduce(ee.Reducer.median()).getInfo()
-    )
-
-    print(
-        sdms_eco_area_medianlat.aggregate_array('medianlat_shift').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.And(ee.Filter.neq('in_eco_present', 0), ee.Filter.neq('in_eco_future', 0))).aggregate_array('medianlat_shift').reduce(ee.Reducer.median()).getInfo(),
-        sdms_eco_area_medianlat.filter(ee.Filter.neq('medianlat_shift', -999)).aggregate_array('medianlat_shift').reduce(ee.Reducer.median()).getInfo()
-    )
-    '''
+    
     # return feature with properties for biome name and number, eocregion ID and name, realm, ecoregion area, 
     # number of species in ecoregion for present and future climate projections, number of species lost and gained between both climate projections,
     # median SDM area across species for present and future climate projections, and median relative change in SDM area 
@@ -85,22 +33,21 @@ def compute_species_stats_ecoregion(ecoid):
         'n_future': sdms_eco.filter(ee.Filter.eq('in_eco_future', 1)).size(),
         'n_lost': sdms_eco.filter(ee.Filter.And(ee.Filter.eq('in_eco_present', 1), ee.Filter.eq('in_eco_future', 0))).size(),
         'n_gained': sdms_eco.filter(ee.Filter.And(ee.Filter.eq('in_eco_present', 0), ee.Filter.eq('in_eco_future', 1))).size(),
-        'median_area_present': sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('area_1981_2010').reduce(ee.Reducer.median()),
-        'median_area_future': sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('area_2071_2100_ssp585').reduce(ee.Reducer.median()),
-        'median_area_change': sdms_eco_area_medianlat.filter(ee.Filter.neq('area_rel_change', -999)).aggregate_array('area_rel_change').reduce(ee.Reducer.median()),
-        'median_medianlat_present': sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('medianlat_1981_2010').reduce(ee.Reducer.median()),
-        'median_medianlat_future': sdms_eco_area_medianlat.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('medianlat_2071_2100_ssp585').reduce(ee.Reducer.median()),
-        'median_medianlat_shift': sdms_eco_area_medianlat.filter(ee.Filter.neq('medianlat_shift', -999)).aggregate_array('medianlat_shift').reduce(ee.Reducer.median())
+        'median_latitude_present': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('latitude_1981_2010').reduce(ee.Reducer.median()),
+        'median_latitude_future': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('latitude_2071_2100_ssp585').reduce(ee.Reducer.median()),
+        'median_latitude_shift': sdms_eco_area_lat_elev.filter(ee.Filter.neq('latitude_shift', -999)).aggregate_array('latitude_shift').reduce(ee.Reducer.median()),
+        'median_elevation_present': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('elevation_1981_2010').reduce(ee.Reducer.median()),
+        'median_elevation_future': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('elevation_2071_2100_ssp585').reduce(ee.Reducer.median()),
+        'median_elevation_shift': sdms_eco_area_lat_elev.filter(ee.Filter.neq('elevation_shift', -999)).aggregate_array('elevation_shift').reduce(ee.Reducer.median())
     }))
 
 if __name__ == '__main__':
-
     all_biomes = biome_dictionary.getInfo()
     print(all_biomes)
     forest_biomes = biome_dictionary.select(biome_dictionary.keys().filter(ee.Filter.stringContains('item', 'Forest'))).getInfo()
     print(forest_biomes)
 
-    for biome, biome_num in forest_biomes.items(): # all_biomes.items(): #forest_biomes.items():
+    for biome, biome_num in forest_biomes.items(): # all_biomes.items(): 
         print(biome, biome_num)
         
         # get distinct ECO_ID values for the biome
@@ -109,9 +56,9 @@ if __name__ == '__main__':
         print(biome_ecoregions.size().getInfo(), 'ecoregion features -> ', biome_ecoregion_ids.size().getInfo(), 'distinct ecoregion IDs')
 
         # map compute_species_stats_ecoregion function over distinct ECO_ID (not ecoregion features, as some ECO_IDs are spread over multiple features)
-        biome_ecoregions_species_stats = ee.FeatureCollection(biome_ecoregion_ids.map(compute_species_stats_ecoregion))
-        export_table_to_drive(biome_ecoregions_species_stats, 'ecoregions_species_stats_v3_global_biome_' + str(biome_num))
-        
+        biome_ecoregions_stats = ee.FeatureCollection(biome_ecoregion_ids.map(compute_eco_stats_ecoregion))
+        export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_biome_' + str(biome_num))
+
     
     '''
     n_chunks = 2

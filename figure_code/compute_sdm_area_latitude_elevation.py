@@ -30,10 +30,9 @@ if __name__ == '__main__':
     print(sdms.size().getInfo(), 'sdms in analysis')
 
     sdms_area_lat_elev = sdms.map(get_sdm_area_latitude_elevation)
-    # export_table_to_drive(sdms_area_lat_elev, sdms_area_lat_elev_drive_filename) 
-
+    export_table_to_drive(sdms_area_lat_elev, sdms_area_lat_elev_drive_filename) 
     sdms_area_lat_elev_fc = sdms_area_lat_elev.map(lambda f: ee.Feature(f).setGeometry(ee.Geometry.Point([0,0])))
-    #export_table_to_asset(sdms_area_lat_elev_fc, sdms_area_lat_elev_asset_filename)
+    export_table_to_asset(sdms_area_lat_elev_fc, sdms_area_lat_elev_asset_filename)
 
     sdms_forest_area_lat_elev = sdms.map(lambda sdm: sdm.multiply(forest_image)).map(get_sdm_area_latitude_elevation)
     export_table_to_drive(sdms_forest_area_lat_elev, sdms_forest_area_lat_elev_drive_filename)
