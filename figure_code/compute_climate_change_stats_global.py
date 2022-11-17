@@ -16,29 +16,26 @@ def compute_eco_stats_ecoregion(ecoid):
     ).filter(ee.Filter.Or(ee.Filter.eq('in_eco_present', 1), ee.Filter.eq('in_eco_future', 1)))
 
     # get SDM latitude and elevation shift for each species in ecoregion for present and future climate projections 
-    sdms_eco_area_lat_elev = sdms_area_lat_elev_fc.filter(ee.Filter.inList('species', sdms_eco.aggregate_array('system:index'))).map(lambda f: f.set({
-        'in_eco_present': sdms_eco.filter(ee.Filter.eq('system:index', f.get('species'))).first().get('in_eco_present'),
-        'in_eco_future': sdms_eco.filter(ee.Filter.eq('system:index', f.get('species'))).first().get('in_eco_future')
+    sdms_eco_present_and_future = sdms_eco.filter(ee.Filter.And(ee.Filter.eq('in_eco_present', 1), ee.Filter.eq('in_eco_future', 1)))
+    sdms_eco_lat_elev = sdms_area_lat_elev_fc.filter(ee.Filter.inList('species', sdms_eco_present_and_future.aggregate_array('system:index'))).map(lambda f: f.set({
+        'latitude_shift': f.getNumber('latitude_2071_2100_ssp585').subtract(f.getNumber('latitude_1981_2010')),
+        'elevation_shift': f.getNumber('elevation_2071_2100_ssp585').subtract(f.getNumber('elevation_1981_2010')),
     })).map(lambda f: f.set({
-        'latitude_shift': ee.Algorithms.If(f.getNumber('in_eco_present').neq(0).And(f.getNumber('in_eco_future').neq(0)), f.getNumber('latitude_2071_2100_ssp585').subtract(f.getNumber('latitude_1981_2010')), -999),
-        'elevation_shift': ee.Algorithms.If(f.getNumber('in_eco_present').neq(0).And(f.getNumber('in_eco_future').neq(0)), f.getNumber('elevation_2071_2100_ssp585').subtract(f.getNumber('elevation_1981_2010')), -999)
+        'abs_latitude_shift': f.getNumber('latitude_shift').abs(), 'pos_elevation_shift': ee.Algorithms.If(f.getNumber('elevation_shift').gte(0), f.get('elevation_shift'), 0)
     }))
     
     # return feature with properties for biome name and number, eocregion ID and name, realm, ecoregion area, 
     # number of species in ecoregion for present and future climate projections, number of species lost and gained between both climate projections,
     # median SDM area across species for present and future climate projections, and median relative change in SDM area 
     return ee.Feature(None, ecoregions.filter(ee.Filter.eq('ECO_ID', ecoid)).first().toDictionary(['BIOME_NAME','BIOME_NUM','ECO_ID','ECO_NAME','REALM']).combine({
-        # 'ECO_AREA': eco_area,
         'n_present': sdms_eco.filter(ee.Filter.eq('in_eco_present', 1)).size(),
         'n_future': sdms_eco.filter(ee.Filter.eq('in_eco_future', 1)).size(),
         'n_lost': sdms_eco.filter(ee.Filter.And(ee.Filter.eq('in_eco_present', 1), ee.Filter.eq('in_eco_future', 0))).size(),
         'n_gained': sdms_eco.filter(ee.Filter.And(ee.Filter.eq('in_eco_present', 0), ee.Filter.eq('in_eco_future', 1))).size(),
-        'median_latitude_present': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('latitude_1981_2010').reduce(ee.Reducer.median()),
-        'median_latitude_future': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('latitude_2071_2100_ssp585').reduce(ee.Reducer.median()),
-        'median_latitude_shift': sdms_eco_area_lat_elev.filter(ee.Filter.neq('latitude_shift', -999)).aggregate_array('latitude_shift').reduce(ee.Reducer.median()),
-        'median_elevation_present': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_present', 0)).aggregate_array('elevation_1981_2010').reduce(ee.Reducer.median()),
-        'median_elevation_future': sdms_eco_area_lat_elev.filter(ee.Filter.neq('in_eco_future', 0)).aggregate_array('elevation_2071_2100_ssp585').reduce(ee.Reducer.median()),
-        'median_elevation_shift': sdms_eco_area_lat_elev.filter(ee.Filter.neq('elevation_shift', -999)).aggregate_array('elevation_shift').reduce(ee.Reducer.median())
+        'latitude_shift': sdms_eco_lat_elev.aggregate_array('latitude_shift').reduce(ee.Reducer.median()),
+        'abs_latitude_shift': sdms_eco_lat_elev.aggregate_array('abs_latitude_shift').reduce(ee.Reducer.median()),
+        'elevation_shift': sdms_eco_lat_elev.aggregate_array('elevation_shift').reduce(ee.Reducer.median()),
+        'pos_elevation_shift': sdms_eco_lat_elev.aggregate_array('pos_elevation_shift').reduce(ee.Reducer.median())
     }))
 
 if __name__ == '__main__':
@@ -57,7 +54,7 @@ if __name__ == '__main__':
 
         # map compute_species_stats_ecoregion function over distinct ECO_ID (not ecoregion features, as some ECO_IDs are spread over multiple features)
         biome_ecoregions_stats = ee.FeatureCollection(biome_ecoregion_ids.map(compute_eco_stats_ecoregion))
-        export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_biome_' + str(biome_num))
+        export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_v2_biome_' + str(biome_num))
 
     
     '''

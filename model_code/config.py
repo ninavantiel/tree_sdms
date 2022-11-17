@@ -22,13 +22,14 @@ earthengine = subprocess.run(['which', 'earthengine'], stdout=subprocess.PIPE).s
 bucket_path = 'gs://nina_other_bucket'
 
 # local directory paths
-sampled_data_localdir = '../sampled_data'
-merged_data_localdir = '../merged_data'
-sampled_pseudoabsences_localdir = '../sampled_pseudoabsences/'
-merged_pseudoabsences_filepath = '../pseudoabsences.csv'
+sampled_data_localdir = 'data/sampled_data'
+merged_data_localdir = 'data/merged_data'
+sampled_pseudoabsences_localdir = 'data/sampled_pseudoabsences/'
+merged_pseudoabsences_filepath = 'data/pseudoabsences.csv'
 
 # directory and file paths in google earthengine
 treemap_dir = 'projects/crowtherlab/nina/treemap'
+
 sampled_data_dir = treemap_dir + '/sampled_data_test'
 prepped_occurrences_dir = treemap_dir + '/prepped_points_test' 
 range_dir = treemap_dir + '/ranges_test' 

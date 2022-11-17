@@ -10,9 +10,16 @@ code run with Python 3.8.13, Google Earth Engine, gsutil, ...
 `config.py` contains variables and functions to share across all scripts. These are imported in other python scripts with `from config import *`. Variable values are accessible in bash scripts with `python3 config.py "VAR_NAME"`, replacing `VAR_NAME` with the name of the variable of interest.
 
 - input data
- - treemap_data_all_species
+ - species_occurence_fc: feature collection in earthengine, each feature 
+is a species occurrence with a "species" property (species name 
+connected by an underscore, eg. Hillia_parasitica) and a point geometry 
+for the location
+ - composite_to_sample: image in earthengin with bands for each model 
+covariate as well as Abs_Lat, Pixel_Lat, Pixel_Long, Resolve_Biome and 
+Resolve_Ecoregions
  - pseudoabsences
- - gts and country geometries
+ - reported native countries gts and country geometries
+ - country geometries with desired buffer
 
 
 ### Run modelling pipeline for species of interest
