@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
+from math import ceil
 
 import ee
 try: ee.Initialize()
@@ -12,7 +13,7 @@ google_drive_folder = 'treemap'
 google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
 #earthengine assets
-earthengine_folder = 'users/ninavantiel/treemap/'
+earthengine_folder = 'users/ninavantiel/treemap/' 
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox') 
@@ -32,6 +33,8 @@ sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_
 sdms_forest_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
 sdms_forest_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_fc'
 sdms_forest_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest_area_lat_elev_asset_filename)
+
+sdm_realm_drive_filename = 'sdm_realms'
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()

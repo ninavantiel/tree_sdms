@@ -44,37 +44,28 @@ if __name__ == '__main__':
     forest_biomes = biome_dictionary.select(biome_dictionary.keys().filter(ee.Filter.stringContains('item', 'Forest'))).getInfo()
     print(forest_biomes)
 
-    for biome, biome_num in forest_biomes.items(): # all_biomes.items(): 
-        print(biome, biome_num)
+    for biome, biome_num in forest_biomes.items(): 
+        if biome_num != 1: continue
+        print('*', biome, biome_num)
         
         # get distinct ECO_ID values for the biome
         biome_ecoregions = ecoregions.filter(ee.Filter.eq('BIOME_NUM', biome_num))
         biome_ecoregion_ids = biome_ecoregions.aggregate_array('ECO_ID').distinct()
-        print(biome_ecoregions.size().getInfo(), 'ecoregion features -> ', biome_ecoregion_ids.size().getInfo(), 'distinct ecoregion IDs')
+        n_ecoids = biome_ecoregion_ids.size().getInfo()
+        print(biome_ecoregions.size().getInfo(), 'ecoregion features -> ', n_ecoids, 'distinct ecoregion IDs')
 
         # map compute_species_stats_ecoregion function over distinct ECO_ID (not ecoregion features, as some ECO_IDs are spread over multiple features)
         biome_ecoregions_stats = ee.FeatureCollection(biome_ecoregion_ids.map(compute_eco_stats_ecoregion))
-        export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_v2_biome_' + str(biome_num))
+        if n_ecoids <= 50:
+            export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_v2_biome_' + str(biome_num))
+        else:
+            nchunks = ceil(n_ecoids/50.0)
+            chunksize = ceil(n_ecoids / nchunks)
+            print(n_ecoids, nchunks, chunksize)
+            for i, idx in enumerate(range(0, n_ecoids, chunksize)):
+                print(idx, idx+chunksize)
+                print(biome_ecoregion_ids.slice(idx, idx+chunksize).size().getInfo())
+                print('ecoregions_stats_v2_biome_' + str(biome_num) + '_chunk_' + str(i) + '_outof_' + str(nchunks))
+                biome_ecoregions_stats = ee.FeatureCollection(biome_ecoregion_ids.slice(idx, idx+chunksize).map(compute_eco_stats_ecoregion))
+                export_table_to_drive(biome_ecoregions_stats, 'ecoregions_stats_v2_biome_' + str(biome_num) + '_chunk_' + str(i) + '_outof_' + str(nchunks))
 
-    
-    '''
-    n_chunks = 2
-    for biome, biome_num in forest_biomes.items():
-        if biome_num in [1, 12]:
-            print(biome, biome_num)
-
-            # get distinct ECO_ID values for the biome
-            biome_ecoregions = ecoregions.filter(ee.Filter.eq('BIOME_NUM', biome_num))
-            biome_ecoregion_ids = biome_ecoregions.aggregate_array('ECO_ID').distinct()
-            print(biome_ecoregions.size().getInfo(), 'ecoregion features -> ', biome_ecoregion_ids.size().getInfo(), 'distinct ecoregion IDs')
-
-            n_eco = biome_ecoregion_ids.size().getInfo()
-            chunksize = int(n_eco / n_chunks) + 1
-            for start_id in range(0, n_eco, chunksize):
-                print(start_id, start_id+chunksize)
-                print(biome_ecoregion_ids.slice(start_id, start_id+chunksize).size().getInfo())
-            
-                # map compute_species_stats_ecoregion function over distinct ECO_ID (not ecoregion features, as some ECO_IDs are spread over multiple features)
-                biome_ecoregions_species_stats = ee.FeatureCollection(biome_ecoregion_ids.slice(start_id, start_id+chunksize).map(compute_species_stats_ecoregion))
-                export_table_to_drive(biome_ecoregions_species_stats, 'ecoregions_species_stats_v2_biome_' + str(biome_num) + '_eco_' + str(start_id) + 'to' + str(start_id+chunksize))
-    '''

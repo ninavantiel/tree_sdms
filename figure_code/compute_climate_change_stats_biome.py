@@ -3,7 +3,7 @@ from config_figures import *
 # function to compute per ecoregion statistics of SDM changes when applied to present (1981-2010) and future (2071-2100 SSP 5.85) climate scenarios
 def compute_climate_change_stats_biome(biome_num):
     sdms_in_biome = sdms.map(
-        lambda sdm: sdm.select(['covariates_1981_2010','covariates_2071_2100_ssp585']).multiply(biome_image.eq(biome_num).selfMask())
+        lambda sdm: sdm.select(['covariates_1981_2010','covariates_2071_2100_ssp585']).multiply(biome_image.eq(ee.Image.constant(biome_num)).selfMask())
     ).map(lambda sdm: sdm.set(sdm.rename(['in_biome_present', 'in_biome_future']).reduceRegion(
         reducer = ee.Reducer.anyNonZero(), geometry = unbounded_geo, scale = scale_to_use, maxPixels = 1e13
     ))).filter(ee.Filter.Or(ee.Filter.eq('in_biome_present', 1), ee.Filter.eq('in_biome_future', 1))).limit(50)
