@@ -13,6 +13,10 @@ def compute_climate_change_stats_biome(biome_num):
         lambda f: f.set({
             'latitude_shift': f.getNumber('latitude_2071_2100_ssp585').subtract(f.getNumber('latitude_1981_2010')),
             'elevation_shift': f.getNumber('elevation_2071_2100_ssp585').subtract(f.getNumber('elevation_1981_2010'))
+        }).set({
+            'abs_latitude_shift': f.getNumber('latitude_shift').abs(),
+            'abs_elevation_shift': f.getNumber('elevation_shift').abs(),
+            'pos_elevation_shift': ee.Algorithms.If(f.getNumber('elevation_shift').gte(0), f.getNumber('elevation_shift'), 0)
         })
     )
     
@@ -25,14 +29,20 @@ def compute_climate_change_stats_biome(biome_num):
         'n_lost': sdms_in_biome.filter(ee.Filter.And(ee.Filter.eq('in_biome_present', 1), ee.Filter.eq('in_biome_future', 0))).size(),
         'n_gained': sdms_in_biome.filter(ee.Filter.And(ee.Filter.eq('in_biome_present', 0), ee.Filter.eq('in_biome_future', 1))).size(),
         'latitude_shift': sdms_biome_lat_elev.aggregate_array('latitude_shift').reduce(ee.Reducer.median()),
+        'abs_latitude_shift': sdms_biome_lat_elev.aggregate_array('abs_latitude_shift').reduce(ee.Reducer.median()),
         'elevation_shift': sdms_biome_lat_elev.aggregate_array('elevation_shift').reduce(ee.Reducer.median()),
+        'abs_elevation_shift': sdms_biome_lat_elev.aggregate_array('abs_elevation_shift').reduce(ee.Reducer.median()),
+        'pos_elevation_shift': sdms_biome_lat_elev.aggregate_array('pos_elevation_shift').reduce(ee.Reducer.median()),
+
     }))
 
 if __name__ == '__main__':
     forest_biomes = biome_dictionary.select(biome_dictionary.keys().filter(ee.Filter.stringContains('item', 'Forest'))).values()
     print(forest_biomes.getInfo())
     biome_climate_change_stats = ee.FeatureCollection(forest_biomes.map(compute_climate_change_stats_biome))
-    export_table_to_drive(biome_climate_change_stats, 'biome_climate_change_stats')
+    export_table_to_drive(biome_climate_change_stats, 'biome_climate_change_stats_v2')
+
+
     '''
     all_biomes = biome_dictionary.getInfo()
     print(all_biomes)

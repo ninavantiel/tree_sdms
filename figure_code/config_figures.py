@@ -35,6 +35,7 @@ sdms_forest_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_
 sdms_forest_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest_area_lat_elev_asset_filename)
 
 sdm_realm_drive_filename = 'sdm_realms'
+sdm_biome_drive_filename = 'sdm_biomes'
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
