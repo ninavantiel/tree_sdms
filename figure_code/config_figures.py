@@ -1,7 +1,9 @@
 # import os
+import sys
 import pandas as pd
 import numpy as np 
 import matplotlib.pyplot as plt
+import seaborn as sns
 from math import ceil
 
 import ee
@@ -18,7 +20,8 @@ earthengine_folder = 'users/ninavantiel/treemap/'
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox') 
 scale_to_use = sdms.first().projection().nominalScale()
-forest_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) # current forests = Hansen et al. tree cover in 2010 >= 10% 
+forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
+forest20_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(20) 
 ecoregions = ee.FeatureCollection('projects/crowtherlab/nina/treemap/Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
@@ -30,12 +33,20 @@ sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
 sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
 sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
 
-sdms_forest_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
-sdms_forest_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_fc'
-sdms_forest_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest_area_lat_elev_asset_filename)
+sdms_forest10_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
+sdms_forest10_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_fc'
+sdms_forest10_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest10_area_lat_elev_asset_filename)
+
+sdm_area_drive_filename = 'sdms_area'
+sdm_area_asset_filename = 'sdms_area_fc'
+
+sdms_lat_elev_drive_filename = 'sdms_latitude_elevation'
+sdms_lat_elev_asset_filename = 'sdms_latitude_elevation_fc'
 
 sdm_realm_drive_filename = 'sdm_realms'
 sdm_biome_drive_filename = 'sdm_biomes'
+
+nmds_sampled_data_dir = '../../nmds_sampled_data'
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
