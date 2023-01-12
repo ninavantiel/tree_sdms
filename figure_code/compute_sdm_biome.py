@@ -24,12 +24,5 @@ def get_sdm_biome(sdm):
     return ee.Feature(None, {'species': sdm.get('system:index')}).set(biome_area_sdm.combine(biome_area_no_sdm))
 
 if __name__ == '__main__':
-    # print(sdms.limit(2).map(get_sdm_realm).getInfo())
-    # sdm_realms = sdms.map(get_sdm_realm)
-    # export_table_to_drive(sdm_realms, sdm_realm_drive_filename)
-
-    print(sdms.limit(2).map(get_sdm_biome).getInfo())
     sdm_biomes = sdms.map(get_sdm_biome)
-    # export_table_to_drive(sdm_realms, sdm_biome_drive_filename)
-
-    
+    export_table_to_drive(sdm_biomes, sdm_biome_drive_filename)

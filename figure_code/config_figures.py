@@ -2,9 +2,11 @@
 import sys
 import pandas as pd
 import numpy as np 
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
+from scipy.stats import gaussian_kde
 
 import ee
 try: ee.Initialize()
@@ -34,14 +36,16 @@ sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
 sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
 
 sdms_forest10_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
-sdms_forest10_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation_fc'
+sdms_forest10_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation'
 sdms_forest10_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest10_area_lat_elev_asset_filename)
 
-sdm_area_drive_filename = 'sdms_area'
-sdm_area_asset_filename = 'sdms_area_fc'
+sdm_area_latitude_drive_filename = 'sdms_area_latitude'
+sdm_area_lat_min_tree_cover_asset_filename = 'sdms_area_latitude'
 
 sdms_lat_elev_drive_filename = 'sdms_latitude_elevation'
 sdms_lat_elev_asset_filename = 'sdms_latitude_elevation_fc'
+
+sdms_area_lat_elev_asset = 'sdms_area_lat_elev'
 
 sdm_realm_drive_filename = 'sdm_realms'
 sdm_biome_drive_filename = 'sdm_biomes'
