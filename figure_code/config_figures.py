@@ -54,6 +54,7 @@ nmds_sampled_data_dir = '../../nmds_sampled_data'
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
+def unmask_mask(img): return img.mask(img.mask().gte(0.5)).unmask(0, False)
 
 #export functions
 def export_table_to_drive(fc, filename):
