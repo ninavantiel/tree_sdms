@@ -28,6 +28,7 @@ ecoregions = ee.FeatureCollection('projects/crowtherlab/nina/treemap/Ecoregions'
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
+splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
 #filenames
