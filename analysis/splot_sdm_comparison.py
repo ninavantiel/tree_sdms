@@ -1,4 +1,4 @@
-from config_figures import *
+from config_figures import * 
 
 def splot_sdm_comparison(species):
     sdm = sdms.filter(ee.Filter.eq('system:index', species)).first().select('covariates_1981_2010')
@@ -11,19 +11,36 @@ def splot_sdm_comparison(species):
         lambda f: f.select(['first', 'splot_presence'],['sdm_presence', 'splot_presence'])
     )
 
-    tp = species_sdm_splot_pa.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 1), ee.Filter.eq('splot_presence', 1))).size()
-    fp = species_sdm_splot_pa.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 1), ee.Filter.eq('splot_presence', 0))).size()
-    tn = species_sdm_splot_pa.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 0), ee.Filter.eq('splot_presence', 0))).size()
-    fn = species_sdm_splot_pa.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 0), ee.Filter.eq('splot_presence', 1))).size()
+    export_table_to_asset(species_sdm_splot_pa, species, 'users/ninavantiel/treemap/sPlot_comparison/splot_sdm/')
 
-    return ee.Feature(None, {'species': species, 'tp': tp, 'fp': fp, 'tn': tn, 'fn': fn})
+def compute_confusion_matrix(species):
+    fc = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/splot_sdm/' + species)
+    tp = fc.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 1), ee.Filter.eq('splot_presence', 1))).size()#.getInfo()
+    tn = fc.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 0), ee.Filter.eq('splot_presence', 0))).size()#.getInfo()
+    fp = fc.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 1), ee.Filter.eq('splot_presence', 0))).size()#.getInfo()
+    fn = fc.filter(ee.Filter.And(ee.Filter.eq('sdm_presence', 0), ee.Filter.eq('splot_presence', 1))).size()#.getInfo()
+    #return pd.DataFrame([[tp, tn, fp, fn]], index=[s], columns=['tp','tn','fp','fn'])
+    return ee.Feature(None, {'species': species, 'tp':tp, 'tn':tn, 'fp':fp, 'fn':fn})
 
 if __name__ == '__main__':
     sdm_species = sdms.aggregate_array('system:index')
     splot_species = splot_data.distinct('Species').aggregate_array('Species').map(lambda x: ee.String(x).replace(' ','_'))
 
-    species = sdm_species.filter(ee.Filter.inList('item', splot_species))
+    species = sdm_species.filter(ee.Filter.inList('item', splot_species)).getInfo()
+    print(len(species), 'species')
 
-    splot_sdm_fc = ee.FeatureCollection(species.map(splot_sdm_comparison))
-    export_table_to_drive(splot_sdm_fc, 'splot_sdm_comparison')
+    '''
+    for s in species:
+        splot_sdm_comparison(s)
+    '''
 
+    conf_mats = ee.FeatureCollection([compute_confusion_matrix(s) for s in species])
+    export_table_to_drive(conf_mats, 'sdm_splot_comparison')
+
+    # df_list = []
+    # for s in species:
+    #     print(s)
+    #     df_list.append(compute_confusion_matrix(s))
+    # df = pd.concat(df_list)
+    # df.to_csv('../../splot_sdm_confusion_mats.csv', index_label='species')
+    

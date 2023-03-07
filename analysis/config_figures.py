@@ -29,6 +29,8 @@ biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
 splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
+nmds = ee.FeatureCollection(earthengine_folder + 'nmds_scale_mult_100')
+evopca = ee.FeatureCollection(earthengine_folder + 'evopca_scale_mult_100')
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
 #filenames
@@ -52,6 +54,8 @@ sdm_realm_drive_filename = 'sdm_realms'
 sdm_biome_drive_filename = 'sdm_biomes'
 
 nmds_sampled_data_dir = '../../nmds_sampled_data'
+nmds_evopca_asset = 'nmds_evopca_fc'
+nmds_evopca_fc = ee.FeatureCollection(earthengine_folder + nmds_evopca_asset)
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
@@ -66,11 +70,11 @@ def export_table_to_drive(fc, filename):
 	)
 	export.start()
 
-def export_table_to_asset(fc, filename):
+def export_table_to_asset(fc, filename, folder=earthengine_folder):
 	export = ee.batch.Export.table.toAsset(
 		collection = fc,
 		description = filename,
-		assetId = earthengine_folder + filename
+		assetId = folder + filename
 
 	)
 	export.start()
