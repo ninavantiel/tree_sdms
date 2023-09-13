@@ -1,5 +1,6 @@
 __pycache__
-model_code/data
-figure_code/__pycache__
+model/data
+analysis/__pycache__
 .DS_Store
 analysis/.DS_Store
+data/

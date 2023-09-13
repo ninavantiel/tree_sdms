@@ -19,6 +19,7 @@ google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 #earthengine assets
 earthengine_folder = 'users/ninavantiel/treemap/' 
 
+
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox') 
 scale_to_use = sdms.first().projection().nominalScale()
@@ -54,8 +55,6 @@ sdm_realm_drive_filename = 'sdm_realms'
 sdm_biome_drive_filename = 'sdm_biomes'
 
 nmds_sampled_data_dir = '../../nmds_sampled_data'
-nmds_evopca_asset = 'nmds_evopca_fc'
-nmds_evopca_fc = ee.FeatureCollection(earthengine_folder + nmds_evopca_asset)
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()

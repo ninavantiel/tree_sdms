@@ -9,13 +9,13 @@ library(gridExtra)
 library(parallel)
 library(tictoc)
 
-setwd('/Users/ninavantiel/Documents/treemap/treemap_figures_data/')
+setwd('/Users/nina/Documents/treemap/treemap/')
 
 dopar = TRUE
 npar = 4
 
-comm.matrix.filename <- 'sampled_species_composition/species_data_scale_92766.csv'
-output.file.prefix <- 'nmds/nmds_3d_scale_92766_par'
+comm.matrix.filename <- 'data/species_data_1981_2010_scale_92766.csv'
+output.file.prefix <- 'data/nmds_3d_1981_2010_scale_92766'
 
 comm.matrix <- fread(comm.matrix.filename, sep=',')
 comm.matrix <- data.frame(comm.matrix) 
