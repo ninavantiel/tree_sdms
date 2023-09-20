@@ -13,3 +13,4 @@ if __name__ == '__main__':
     ], proj)))
 
     export_table_to_asset(fc_with_geo, nmds_evopca_asset)
+ 

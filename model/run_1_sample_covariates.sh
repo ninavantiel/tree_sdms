@@ -17,8 +17,7 @@ echo `cat species_list.csv | wc -l` species in list
 {
 	while IFS=, read -r x
 		do
-		#if [ ! -e "${merged_data_dir}/${x}.csv" ]; then
-		if [[ ! "$sampled_data_ls" == *"$x"* ]]; then
+		if [ ! -e "${merged_data_dir}/${x}.csv" ]; then
 			python3 p1_sample_covariates.py ${x}
 		else
 			echo $x already done

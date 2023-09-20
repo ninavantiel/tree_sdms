@@ -4,41 +4,40 @@ library(dplyr)
 library(tidyverse)
 library(ggtree)
 library(adiv)
+library(tictoc)
 
-setwd("~/Documents/treemap/treemap/analysis")
+setwd('/Users/nina/Documents/treemap/treemap/data/')
+comm.matrix.filename <- 'species_data_covariates_1981_2010_scale_92766.csv'
 
+# create dataframe of species with species name and genus
 species_df <- read.csv("species_list.csv", header=FALSE, col.names = 'species')
 species_df$species <- gsub('_', ' ', species_df$species)
 species_df$genus <- separate(species_df, species, c("genus", "."), " ")$genus
 head(species_df)
 dim(species_df)
 
-gts <- read.csv('../../globalTreeSearch.csv') 
+# get family from globalTreeSearch and add to dataframe
+gts <- read.csv('globalTreeSearch.csv') 
 gts <- gts %>% rename(species=taxon) %>% select('species', 'family') %>% unique()
-head(gts)
-
 species_df <- merge(x=species_df, y=gts, by='species', all.x=TRUE)
 head(species_df)
 dim(species_df)
 
+# make phylogenetic tree for species in dataframe 
 tree.a <- phylo.maker(sp.list=species_df) 
-ggtree(tree.a$scenario.3) + geom_tiplab(as_ylab=TRUE, color='firebrick')
+# ggtree(tree.a$scenario.3) + geom_tiplab(as_ylab=TRUE, color='firebrick')
 
-community_mat <- read.csv("../../species_data_merged_scale_92766.csv")
-colnames(community_mat) <- gsub('_', ' ', colnames(community_mat))
-colnames(community_mat) <- gsub('\\.', '-', colnames(community_mat))
-dim(community_mat)
+# read and format community matrix where rows correspond to sites and columns to species
+comm.matrix <- fread(comm.matrix.filename, sep=',')
+#colnames(comm.matrix) <- gsub('_', ' ', colnames(comm.matrix))
+colnames(comm.matrix) <- gsub('\\.', '-', colnames(comm.matrix))
+comm.matrix <- comm.matrix %>% select(-c('x','y'))
+#colnames(comm.matrix) <- gsub(' ', '_', colnames(comm.matrix))
+#rownames(comm.matrix) <- NULL
 
-comm <- community_mat %>% select(-c('x','y'))
-colnames(comm) <- gsub(' ', '_', colnames(comm))
-rownames(comm) <- NULL
-dim(comm)
-
-start <- Sys.time()
-print(start)
-evopca <- evopcahellinger(tree.a$scenario.3, comm, scannf = FALSE, nf = 3)
-end <- Sys.time()
-print(end-start)
+tic()
+evopca <- evopcahellinger(tree.a$scenario.3, comm.matrix, scannf = FALSE, nf = 3)
+toc()
 
 save(evopca, file = '../../evopca.RData')
 

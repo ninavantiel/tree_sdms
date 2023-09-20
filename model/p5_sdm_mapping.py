@@ -56,10 +56,6 @@ def compute_cv_results(species):
 	recall = validation_metrics.filterMetadata('threshold','equals',threshold).aggregate_mean('recall')
 	precision = validation_metrics.filterMetadata('threshold','equals',threshold).aggregate_mean('precision')
 
-	#print(threshold.getInfo(), mean_tss.aggregate_max('mean_tss').getInfo())
-	#print(tss.getInfo(), recall.getInfo(), precision.getInfo())
-	#print(auc.getInfo())
-
 	return threshold, tss, auc, recall, precision
 
 if __name__ == '__main__':

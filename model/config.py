@@ -1,3 +1,4 @@
+# packages
 try:
 	from time import sleep
 	import multiprocessing
@@ -13,51 +14,75 @@ try:
 	import ee
 except ImportError: sys.exit('Not all packages are installed. \n Packages: time, multiprocessing, sys, os, random, math, heapq, subprocess, pandas, functools, contextlib, ee')
 
+# Initialize Google Earth Engine (GEE)
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
-
 earthengine = subprocess.run(['which', 'earthengine'], stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n','')
 
-# google cloud storage bucket path for sampled data
+# Path to Google Cloud Storage Bucket to upload sampled data to
 bucket_path = 'gs://nina_other_bucket'
 
-# local directory paths
+# Paths to local directories for 
+# - sampled data
+# - file with merged sampled data for each species 
+# - sampled pseudoabsences 
 sampled_data_localdir = 'data/sampled_data'
 merged_data_localdir = 'data/merged_data'
 sampled_pseudoabsences_localdir = 'data/sampled_pseudoabsences/'
+# Path to local file for merged sampled pseudoabsences
 merged_pseudoabsences_filepath = 'data/pseudoabsences.csv'
 
-# directory and file paths in google earthengine
-treemap_dir = 'projects/crowtherlab/nina/treemap'
-
-sampled_data_dir = treemap_dir + '/sampled_data_test'
-prepped_occurrences_dir = treemap_dir + '/prepped_points_test' 
-range_dir = treemap_dir + '/ranges_test' 
-cross_validation_dir = treemap_dir + '/cross_validation_test'
-sdm_img_col = treemap_dir + '/sdms_test'
-
+# GEE paths to folders and assets
+# Main folder 
+treemap_dir = 'projects/crowtherlab/nina/treemap' 
+# Folder for FeatureCollections of sampled data for each species
+sampled_data_dir = treemap_dir + '/sampled_data'
+# Folder for FeatureCollections of prepared occurrence data for each species
+prepped_occurrences_dir = treemap_dir + '/prepped_points' 
+# Folder for FeatureCollections of geographic range polygons for each species
+range_dir = treemap_dir + '/ranges' 
+# Folder for FeatureCollections of predictions for model cross-validation for each species
+cross_validation_dir = treemap_dir + '/cross_validation'
+# ImageCollection for final SDM output images
+sdm_img_col = treemap_dir + '/sdms'
+# FeatureCollection containing raw occurrence data for all species
 species_occurence_fc = treemap_dir + '/treemap_data_all_species'
+# Multi-band Image containing model covariates and auxiliary variables:
+# absolute latitude, pixel latitude and longitude, biome and ecoregion
 composite_to_sample = treemap_dir + '/composite_to_sample'
+# FeatureCollection containing native countries for each species
 native_countries_fc = treemap_dir + '/GlobalTreeSearch'
+# FeatureCollection containing geometries of countries with 1000km buffer
 countries_geometries = treemap_dir + '/country_geometries_with_buffer'
+# FeatureCollection containing ecoregions and biomes
 ecoregions = treemap_dir + '/Ecoregions'
+# FeatureCollection containing pseudoabsences with sampled model covariates
 pseudoabsence_fc = treemap_dir + '/pseudoabsences'
+# ImageCollection containing Images with sets of model covariates for SDM predictions
 covariate_img_col = treemap_dir + '/covariate_avg_imgs'
 
+# List of model covariate names
 model_covariate_names = ['coarse_fragments', 'silt_content', 'soil_ph', 'bio12', 'bio15', 'bio1', 'bio4', 'gsl', 'npp']
+# Minimum number of points to run scripts
+min_n_points = 20 
+# Number of psuedoabsences to generate in 0_generate_pseudoabsences.py
+n_pseudoabsences = 1e6 
+# Number of folds for k-fold cross validation 
+k = 3
+
+# GEE Dictionary of models (GEE Classifiers) to use in ensemble model
 models = ee.Dictionary({
 	'RF_simple': ee.Classifier.smileRandomForest(numberOfTrees = 500, bagFraction = 0.632, minLeafPopulation = 10).setOutputMode('PROBABILITY'),
 	'RF_interm': ee.Classifier.smileRandomForest(numberOfTrees = 500, bagFraction = 0.632, minLeafPopulation = 3).setOutputMode('PROBABILITY'), 
 	'GBM_simple': ee.Classifier.smileGradientTreeBoost(numberOfTrees = 500, shrinkage = 0.005, maxNodes = 20).setOutputMode('PROBABILITY'), 
 	'GBM_interm': ee.Classifier.smileGradientTreeBoost(numberOfTrees = 1000, shrinkage = 0.005, maxNodes = 20).setOutputMode('PROBABILITY')
 })
+# GEE Geometry of considered region (we used a global, unbounded geometry)
 unbounded_geo = ee.Geometry.Polygon([[[-180, 88], [180, 88], [180, -88], [-180, -88]]], None, False)
-
-min_n_points = 20 # Minimum number of points to run scripts
-n_pseudoabsences = 1e6 # Number of psuedoabsences to generate in 0_generate_pseudoabsences.py
-k = 3 # Number of folds for k-fold cross validation 
-thresholds = ee.List.sequence(0, 1, None, 100) # thresholds to test for optimal threshold testing
-
+# GEE List of thresholds to test for optimal binarization threshold 
+thresholds = ee.List.sequence(0, 1, None, 100) 
+ 
+ # Function to export FeatureCollection to asset
 def export_fc(fc, description, asset_id):
 	export = ee.batch.Export.table.toAsset(
 		collection = fc,
@@ -66,6 +91,7 @@ def export_fc(fc, description, asset_id):
 	export.start()
 	print('Export started for ' + asset_id)
 
+# Function to export Image to asset
 def export_image(image, description, asset_id):
 	export = ee.batch.Export.image.toAsset(
 		image = image,
@@ -78,6 +104,7 @@ def export_image(image, description, asset_id):
 	export.start()
 	print('Export started for ' + asset_id)
 
+# Function to prepare training data for modelling (used in p4_cross_validation.py and p5_sdm_mapping.py)
 def prepare_training_data(species, max_n = 20000):
 	# Get range and occurrences filtered to range
 	species_range = ee.FeatureCollection(range_dir + '/' + species).geometry()
