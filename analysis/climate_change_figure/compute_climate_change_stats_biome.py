@@ -35,7 +35,7 @@ def compute_climate_change_stats_biome(biome_num):
         'pos_elevation_shift': sdms_biome_lat_elev.aggregate_array('pos_elevation_shift').reduce(ee.Reducer.median()),
 
     }))
-
+ 
 if __name__ == '__main__':
     forest_biomes = biome_dictionary.select(biome_dictionary.keys().filter(ee.Filter.stringContains('item', 'Forest'))).values()
     print(forest_biomes.getInfo())

@@ -39,4 +39,4 @@ Compute cross-validation results and obtain optimal binarization threshold. Trai
 
 Run bash script `run_5_sdm_mapping.sh` to run python script `p5_sdm_mapping.py` for each species in `species_list.csv` for which the cross-validation have already been completed and the final model predictions have not yet been computed.
 
-## Figures
+## Analysis

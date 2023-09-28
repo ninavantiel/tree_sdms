@@ -11,12 +11,11 @@ from functools import partial
 from contextlib import contextmanager
 import multiprocessing
 
-scaling_factor = 100 # original scale is 30 arc seconds, sapling scale will be 30*[scaling_factor] arc seconds
+scaling_factor = 100 # original scale is 30 arc seconds, sampling scale will be 30*[scaling_factor] arc seconds
 sdm_band = 'covariates_2071_2100_ssp585'
 
 gridsize = 200
 chunksize = 5000 
-#merge_subset_frac = 1#0.1#1 # cannot be 0, maximum 1
 
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 sdm_sum = ee.Image('projects/crowtherlab/nina/treemap_figures/sdm_sum')
@@ -25,7 +24,6 @@ scale_to_use = sdms.first().projection().nominalScale().multiply(scaling_factor)
 
 def unmask_mask(img): return img.mask(img.mask().gte(0.5)).unmask(0, False)
 sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = 'EPSG:4326', scale = scale_to_use))
-#sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select('covariates_1981_2010')).reproject(crs = 'EPSG:4326', scale = scale_to_use))
 pixel_image = ee.Image.pixelCoordinates(sdms_to_sample.first().projection())
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
@@ -33,7 +31,6 @@ unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88,
 os.chdir('/Users/nina/Documents/treemap/treemap/')
 outdir = 'data/species_data_' + sdm_band + '_gridsize_' + str(gridsize) + '_scale_' + str(int(scale_to_use.getInfo())) + '/'
 outfile = 'data/species_data_' + sdm_band + '_scale_' + str(int(scale_to_use.getInfo())) + '.csv'
-#(('_subset_' + str(int(merge_subset_frac*100)) + 'percent.csv') if merge_subset_frac != 1 else '.csv')
 
 def generateGrid(region, size):
 	"""Generate a grid covering the region with size*size rectangles"""

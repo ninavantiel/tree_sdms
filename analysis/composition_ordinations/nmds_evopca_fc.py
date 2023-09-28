@@ -12,5 +12,4 @@ if __name__ == '__main__':
         f.getNumber('x').subtract(0.5), f.getNumber('y').subtract(0.5), f.getNumber('x').add(0.5), f.getNumber('y').add(0.5)
     ], proj)))
 
-    export_table_to_asset(fc_with_geo, nmds_evopca_asset)
- 
+    export_table_to_asset(fc_with_geo, nmds_evopca_fc_path)
