@@ -27,10 +27,12 @@ ecoregions = ee.FeatureCollection(earthengine_folder + 'Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 
-nmds = ee.FeatureCollection(earthengine_folder + 'nmds_scale_mult_100')
-evopca = ee.FeatureCollection(earthengine_folder + 'evopca_scale_mult_100')
-nmds_evopca_fc_path = 'users/ninavantiel/treemap/ordinations/nmds_evopca_fc'
-nmds_evopca_fc = ee.FeatureCollection(nmds_evopca_fc_path)
+ordinations_folder = 'users/ninavantiel/treemap/ordinations/'
+nmds = ee.FeatureCollection(ordinations_folder + 'nmds_scale_mult_100')
+evopca = ee.FeatureCollection(ordinations_folder + 'evopca_scale_mult_100')
+nmds_evopca_fc_filename = 'nmds_evopca_fc'
+nmds_evopca_fc = ee.FeatureCollection(ordinations_folder + nmds_evopca_fc_filename)
+nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_cluster')
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
@@ -86,7 +88,7 @@ def export_table_to_asset(fc, filename, folder=earthengine_folder):
 	)
 	export.start()
 
-def export_image_to_asset(image, filename):
+def export_image_to_asset(image, filename, folder=earthengine_folder):
 	export = ee.batch.Export.image.toAsset(
 		image = image,
 		description = filename,

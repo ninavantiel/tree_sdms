@@ -4,3 +4,4 @@ analysis/__pycache__
 .DS_Store
 analysis/.DS_Store
 data/
+figures/

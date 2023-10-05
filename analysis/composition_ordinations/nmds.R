@@ -34,6 +34,10 @@ if (! file.exists(paste0(output.file.prefix, '_dist_mat.Rdata'))){
   print('Community matrix shape after removing species that do not occur')
   print(dim(comm.matrix.sel))
   
+  tmp <- comm.matrix.sel[,1:1000]
+  tmp <- tmp[rowSums(tmp) != 0, colSums(tmp) !=0]
+  comm.matrix.sel <- tmp
+  
   # compute distance matrix among sites and save
   tic()
   dist.mat <- vegdist(comm.matrix.sel, distance = 'sorensen')
