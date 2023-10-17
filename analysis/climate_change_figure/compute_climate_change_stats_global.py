@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
 from config_figures import *
 
 # function to compute per ecoregion statistics of SDM changes when applied to present (1981-2010) and future (2071-2100 SSP 5.85) climate scenarios

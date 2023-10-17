@@ -13,8 +13,6 @@ setwd('/Users/nina/Documents/treemap/treemap/data/')
 comm.matrix.filename <- 'species_data_covariates_1981_2010_scale_92766.csv'
 output.file.prefix <- 'nmds_3d_1981_2010_scale_92766'
 
-npar = 6
-
 # if distance matrix was not already computed, compute it
 # otherwise, load it 
 if (! file.exists(paste0(output.file.prefix, '_dist_mat.Rdata'))){
@@ -33,10 +31,6 @@ if (! file.exists(paste0(output.file.prefix, '_dist_mat.Rdata'))){
   comm.matrix.sel <- comm.matrix %>% select_if(colSums(.) != 0)
   print('Community matrix shape after removing species that do not occur')
   print(dim(comm.matrix.sel))
-  
-  tmp <- comm.matrix.sel[,1:1000]
-  tmp <- tmp[rowSums(tmp) != 0, colSums(tmp) !=0]
-  comm.matrix.sel <- tmp
   
   # compute distance matrix among sites and save
   tic()
@@ -59,9 +53,3 @@ nmds.points <- data.frame(nmds.output$points[,1:3]) %>%
   separate(x_y, c('x','y'), sep='_')
 print(head(nmds.points))
 fwrite(nmds.points, paste0(output.file.prefix, '.csv'))
-
-#g1 <- ggplot(nmds.points, aes(x=MDS1, y=MDS2)) + geom_point()
-#g2 <- ggplot(nmds.points, aes(x=MDS1, y=MDS3)) + geom_point()
-#g3 <- ggplot(nmds.points, aes(x=MDS2, y=MDS3)) + geom_point()
-#g <- grid.arrange(g1, g2, g3, ncol=3)
-#ggsave(g, file=paste0(output.file.prefix, '.png'), width = 10, height = 4)

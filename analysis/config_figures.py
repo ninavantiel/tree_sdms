@@ -5,7 +5,7 @@ import numpy as np
 # import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
-# from math import ceil
+from math import ceil
 # from scipy.stats import gaussian_kde
 
 import ee
@@ -22,6 +22,7 @@ earthengine_folder = 'projects/crowtherlab/nina/treemap/'# users/ninavantiel/tre
 covariate_img = ee.Image(earthengine_folder + 'composite_to_sample')
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
+sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
 
 ecoregions = ee.FeatureCollection(earthengine_folder + 'Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
@@ -36,8 +37,10 @@ nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
+# sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
+sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
+sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
 
-# sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox') 
 # forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
 # forest20_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(20) 
 
@@ -46,9 +49,7 @@ unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88,
 
 
 # #filenames
-# sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
-# sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
-# sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
+
 
 # sdms_forest10_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
 # sdms_forest10_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation'

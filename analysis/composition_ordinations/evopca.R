@@ -1,8 +1,6 @@
 library(V.PhyloMaker) # https://onlinelibrary.wiley.com/doi/full/10.1111/ecog.04434
 library(tidyr)
-library(dplyr)
 library(tidyverse)
-library(ggtree)
 library(adiv)
 library(tictoc)
 library(data.table)
@@ -26,13 +24,12 @@ dim(species_df)
 
 # make phylogenetic tree for species in dataframe 
 tree.a <- phylo.maker(sp.list=species_df) 
-# ggtree(tree.a$scenario.3) + geom_tiplab(as_ylab=TRUE, color='firebrick')
 
 # read and format community matrix where rows correspond to sites and columns to species
-comm.matrix <- fread(comm.matrix.filename, sep=',')
+comm.matrix.df <- fread(comm.matrix.filename, sep=',')
 #colnames(comm.matrix) <- gsub('_', ' ', colnames(comm.matrix))
-colnames(comm.matrix) <- gsub('\\.', '-', colnames(comm.matrix))
-comm.matrix <- comm.matrix %>% select(-c('x','y'))
+colnames(comm.matrix.df) <- gsub('\\.', '-', colnames(comm.matrix.df))
+comm.matrix <- comm.matrix.df %>% select(-c('x','y'))
 #colnames(comm.matrix) <- gsub(' ', '_', colnames(comm.matrix))
 #rownames(comm.matrix) <- NULL
 
@@ -40,13 +37,13 @@ tic()
 evopca <- evopcahellinger(tree.a$scenario.3, comm.matrix, scannf = FALSE, nf = 3)
 toc()
 
-save(evopca, file = '../../evopca.RData')
+save(evopca, file = 'evopca.RData')
 
-load('../../evopca.RData')
+# load('evopca.RData')
 
-df <- community_mat %>% select('x','y') %>% cbind(evopca$li)
+df <- comm.matrix.df %>% select('x','y') %>% cbind(evopca$li)
 head(df)
-write.csv(df, '../../evopca_df.csv', row.names = FALSE)
+write.csv(df, 'evopca_df.csv', row.names = FALSE)
 
 print((evopca$eig / sum(evopca$eig))[1:5])
 

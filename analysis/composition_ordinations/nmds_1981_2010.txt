@@ -1,0 +1,44 @@
+Run 0 stress 0.04223303
+Run 1 stress 0.04526467
+Run 2 stress 0.04587679
+Run 3 stress 0.04641041
+Run 4 stress 0.04812433
+Run 5 stress 0.04401042
+Run 6 stress 0.04319541
+Run 7 stress 0.04333189
+Run 8 stress 0.04571243
+Run 9 stress 0.04684593
+Run 10 stress 0.04928196
+Run 11 stress 0.04425136
+Run 12 stress 0.04230054
+... Procrustes: rmse 0.006128604  max resid 0.1869825
+Run 13 stress 0.04753722
+Run 14 stress 0.04344414
+Run 15 stress 0.03973655
+... New best solution
+... Procrustes: rmse 0.006245638  max resid 0.2075045
+Run 16 stress 0.0475203
+Run 17 stress 0.04686768
+Run 18 stress 0.04164791
+Run 19 stress 0.04287776
+Run 20 stress 0.04725743
+*** Best solution was not repeated -- monoMDS stopping criteria:
+    20: scale factor of the gradient < sfgrmin
+777013.539 sec elapsed
+[1] "Formatting NMDS output and saving csv and png"
+
+Call:
+metaMDS(comm = dist.mat, k = 3)
+
+global Multidimensional Scaling using monoMDS
+
+Data:     dist.mat
+Distance: bray
+
+Dimensions: 3
+Stress:     0.03973655
+Stress type 1, weak ties
+Best solution was not repeated after 20 tries
+The best solution was from try 15 (random start)
+Scaling: centring, PC rotation, halfchange scaling
+Species: scores missing
