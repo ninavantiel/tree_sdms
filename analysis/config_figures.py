@@ -33,7 +33,7 @@ nmds = ee.FeatureCollection(ordinations_folder + 'nmds_scale_mult_100')
 evopca = ee.FeatureCollection(ordinations_folder + 'evopca_scale_mult_100')
 nmds_evopca_fc_filename = 'nmds_evopca_fc'
 nmds_evopca_fc = ee.FeatureCollection(ordinations_folder + nmds_evopca_fc_filename)
-nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_cluster')
+nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_cluster_v2')
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 

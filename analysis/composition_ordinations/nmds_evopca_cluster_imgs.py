@@ -13,8 +13,8 @@ if __name__ == '__main__':
     ], proj)))
 
     nmds_cluster_img = fc_with_geo.reduceToImage(['nmds_cluster'], ee.Reducer.first()).toInt().add(ee.Image.constant(1)).toInt()
-    export_image_to_drive(nmds_cluster_img, 'nmds_cluster_int_add1')
+    export_image_to_drive(nmds_cluster_img, 'nmds_cluster_v2')
 
     evopca_cluster_img = fc_with_geo.reduceToImage(['evopca_cluster'], ee.Reducer.first()).toInt().add(ee.Image.constant(1).toInt()).toInt()
-    export_image_to_drive(evopca_cluster_img, 'evopca_cluster_int_add1')
+    export_image_to_drive(evopca_cluster_img, 'evopca_cluster_v2')
     
