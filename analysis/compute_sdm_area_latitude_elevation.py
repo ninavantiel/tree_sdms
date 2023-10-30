@@ -5,8 +5,7 @@ def get_sdm_area_latitude_min_tree_cover(sdm):
     sdm = sdm.select('covariates_1981_2010')
     sdm_ic = ee.ImageCollection([
         mask_sdm(sdm).set('min_tree_cover', 0),
-        mask_sdm(sdm.multiply(forest10_image)).set('min_tree_cover', 10),
-        mask_sdm(sdm.multiply(forest20_image)).set('min_tree_cover', 20)
+        mask_sdm(sdm.multiply(forest10_image)).set('min_tree_cover', 10)
     ])
 
     sdm_ic = sdm_ic.map(lambda img: img.set({
@@ -58,7 +57,6 @@ def get_sdm_area_latitude_elevation(sdm):
     sdm_ic = ee.ImageCollection([
         mask_sdm(sdm.select(['covariates_1981_2010'],['sdm'])).set({'climate': '1981_2010', 'min_tree_cover': 0}),
         mask_sdm(sdm.select(['covariates_1981_2010'],['sdm']).multiply(forest10_image)).set({'climate': '1981_2010', 'min_tree_cover': 10}),
-        mask_sdm(sdm.select(['covariates_1981_2010'],['sdm']).multiply(forest20_image)).set({'climate': '1981_2010', 'min_tree_cover': 20}),
         mask_sdm(sdm.select(['covariates_2071_2100_ssp585'],['sdm'])).set({'climate': '2071_2100_ssp585', 'min_tree_cover': 0})
     ])
 
@@ -98,10 +96,10 @@ if __name__ == '__main__':
     # SDMS area, latitude and elevation globally for climate 1981-2010 and 2071-2100 ssp 5.58 and restricted to min 10 and 20% tree cover for climate 1981-2010
     sdms_area_lat_elev = sdms.map(get_sdm_area_latitude_elevation).flatten()
     print(sdms_area_lat_elev.first().getInfo())
-    # export_table_to_asset(sdms_area_lat_elev, sdms_area_lat_elev_asset)
+    export_table_to_asset(sdms_area_lat_elev, sdms_area_lat_elev_filename)
 
-    sdms_area_lat_elev = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset)
-    print(sdms_area_lat_elev.first().getInfo())
-    export_table_to_drive(sdms_area_lat_elev, sdms_area_lat_elev_asset) 
+    # sdms_area_lat_elev = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset)
+    # print(sdms_area_lat_elev.first().getInfo())
+    export_table_to_drive(sdms_area_lat_elev, sdms_area_lat_elev_filename) 
 
 

@@ -38,13 +38,12 @@ nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
 # sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
-sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
-sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_asset_filename)
+# sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
+sdms_area_lat_elev_filename = 'sdms_area_lat_elev'
+sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_filename)
 
-# forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
-# forest20_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(20) 
-
-# elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
+forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
+elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
 # splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
 
 
@@ -61,16 +60,15 @@ sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_
 # sdms_lat_elev_drive_filename = 'sdms_latitude_elevation'
 # sdms_lat_elev_asset_filename = 'sdms_latitude_elevation_fc'
 
-# sdms_area_lat_elev_asset = 'sdms_area_lat_elev'
 
 # sdm_realm_drive_filename = 'sdm_realms'
 # sdm_biome_drive_filename = 'sdm_biomes'
 
 # nmds_sampled_data_dir = '../../nmds_sampled_data'
 
-# #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
-# def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
-# def unmask_mask(img): return img.mask(img.mask().gte(0.5)).unmask(0, False)
+#function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
+def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()
+def unmask_mask(img): return img.mask(img.mask().gte(0.5)).unmask(0, False)
 
 #export functions
 def export_table_to_drive(fc, filename):
