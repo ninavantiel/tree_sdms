@@ -2,10 +2,11 @@ import sys
 sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
 from config_figures import *
 from sklearn.preprocessing import MinMaxScaler
-import os
+
 os.chdir('/Users/nina/Documents/treemap/treemap/data/')
 
-def scale_col(colname, df): return MinMaxScaler().fit_transform(df[[colname]])
+def scale_col(colname, df): 
+    return MinMaxScaler().fit_transform(df[[colname]])
 
 def eucl_dist(varlist, df): 
     return np.array([(df[v + '_current'] - df[v + '_future']) ** 2 for v in varlist]).sum(axis=0) ** 0.5

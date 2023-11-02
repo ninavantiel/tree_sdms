@@ -20,7 +20,13 @@ covariate_img = ee.Image(earthengine_folder + 'composite_to_sample')
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
 sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
-sdm_sum = ee.Image('projects/crowtherlab/nina/treemap_figures/sdm_sum')
+
+sdm_sum_filename = 'sdm_sum'
+sdm_sum_folder = 'projects/crowtherlab/nina/treemap_figures/'
+sdm_sum = ee.Image(sdm_sum_folder + sdm_sum_filename)
+
+FAO_countries = ee.FeatureCollection("FAO/GAUL/2015/level0")
+mhs_ic = ee.ImageCollection('users/johanvandenhoogen/2023_tree_sdms/mhs')
 
 ecoregions = ee.FeatureCollection(earthengine_folder + 'Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
@@ -35,14 +41,16 @@ nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
-# sdms_area_lat_elev_drive_filename = 'sdms_area_latitude_elevation'
-# sdms_area_lat_elev_asset_filename = 'sdms_area_latitude_elevation_fc'
 sdms_area_lat_elev_filename = 'sdms_area_lat_elev'
-sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_filename)
+sdms_area_lat_elev_folder = 'users/ninavantiel/treemap/range_size/'
+sdms_area_lat_elev_fc = ee.FeatureCollection(sdms_area_lat_elev_folder + sdms_area_lat_elev_filename)
 
 forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
 elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
-# splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
+splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
+splot_sample_folder = 'users/ninavantiel/treemap/sPlot_comparison/splot_sdm/'
+
+sdm_biome_drive_filename = 'sdm_biomes'
 
 
 # #filenames
@@ -60,7 +68,6 @@ elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') 
 
 
 # sdm_realm_drive_filename = 'sdm_realms'
-# sdm_biome_drive_filename = 'sdm_biomes'
 
 # nmds_sampled_data_dir = '../../nmds_sampled_data'
 

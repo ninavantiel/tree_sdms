@@ -1,14 +1,16 @@
+import sys
+sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
 from config_figures import *
-
-realms = ecoregions.aggregate_array('REALM').distinct()
-realm_dict = ee.Dictionary.fromLists(realms, ee.List.sequence(1, realms.length()))
-ecoregions = ecoregions.map(lambda eco: eco.set('REALM_ID', realm_dict.get(eco.get('REALM'))))
 
 biomes = ecoregions.aggregate_array('BIOME_NAME').distinct()
 
 def get_sdm_biome(sdm):
     sdm = sdm.select('covariates_1981_2010')
-    sdm_area = sdms_area_lat_elev_fc.filter(ee.Filter.eq('species', sdm.get('system:index'))).first().getNumber('area_1981_2010')
+    sdm_area = sdms_area_lat_elev_fc.filter(ee.Filter.And(
+        ee.Filter.eq('species', sdm.get('system:index')), 
+        ee.Filter.eq('climate', '1981_2010'),
+        ee.Filter.eq('min_tree_cover', 0)
+    )).first().getNumber('area')
 
     sdm_in_ecoregions = sdm.reduceRegions(ecoregions, ee.Reducer.anyNonZero(), scale_to_use).filter(ee.Filter.eq('any',1))
     sdm_area_in_ecoregions = sdm.multiply(ee.Image.pixelArea()).reduceRegions(sdm_in_ecoregions, ee.Reducer.sum(), scale_to_use)

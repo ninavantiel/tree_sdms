@@ -3,7 +3,6 @@ sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
 from config_figures import *
 
 # geometry
-FAO = ee.FeatureCollection("FAO/GAUL/2015/level0")
 eu_countries = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", 
     "Czech Republic", "Denmark", "Estonia", "Finland", "France", 
@@ -14,9 +13,7 @@ eu_countries = [
     "Turkey", "U.K. of Great Britain and Northern Ireland", "Switzerland", "Norway", "Serbia",
     'Bosnia and Herzegovina', 'The former Yugoslav Republic of Macedonia', 'Albania', 'Montenegro'
 ]
-geometry = FAO.filter(ee.Filter.inList('ADM0_NAME',eu_countries)).union()
-
-mhs_ic = ee.ImageCollection('users/johanvandenhoogen/2023_tree_sdms/mhs')
+geometry = FAO_countries.filter(ee.Filter.inList('ADM0_NAME',eu_countries)).union()
 
 def get_iou(mhs_img):
     sppName = mhs_img.getString('system:index')

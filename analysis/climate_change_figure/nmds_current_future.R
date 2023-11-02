@@ -7,8 +7,11 @@ library(dplyr)
 library(tidyr)
 library(tictoc)
 
+# set working directory 
 setwd('/Users/nina/Documents/treemap/treemap/data/')
+# name of community matrix file
 comm.matrix.filename <- 'ecoregion_species_sampled.csv'
+# prefix for output files
 output.file.prefix <- 'nmds_3d_ecoregions_current_future'
 
 # if distance matrix was not already computed, compute it

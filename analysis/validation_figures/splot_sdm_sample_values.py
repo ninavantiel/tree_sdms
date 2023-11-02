@@ -12,8 +12,7 @@ def splot_sdm_comparison(species):
     species_sdm_splot_pa = sdm.reduceRegions(collection = species_splot_pa, reducer = ee.Reducer.first(), scale = scale_to_use).filter(ee.Filter.notNull(['first'])).map(
         lambda f: f.select(['first', 'splot_presence'],['sdm_presence', 'splot_presence'])
     )
-
-    export_table_to_asset(species_sdm_splot_pa, species, 'users/ninavantiel/treemap/sPlot_comparison/splot_sdm/')
+    export_table_to_asset(species_sdm_splot_pa, species, splot_sample_folder)
 
 if __name__ == '__main__':
     sdm_species = sdms.aggregate_array('system:index')
