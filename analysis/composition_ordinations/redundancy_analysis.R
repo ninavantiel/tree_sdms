@@ -2,7 +2,10 @@ library(vegan)
 library(tidyverse)
 library(data.table)
 
+# set working directory 
 setwd('/Users/nina/Documents/treemap/treemap/data/')
+
+# read dataframe with ordination and covariate values
 df <- as_tibble(read.csv('ordinations_covariates_1981_2010.csv')) %>% 
   select(-.geo, -system.index) %>% 
   rename(MAT = CHELSA_bio1_1981_2010_V2_1, T_season = CHELSA_bio4_1981_2010_V2_1, 
@@ -10,41 +13,38 @@ df <- as_tibble(read.csv('ordinations_covariates_1981_2010.csv')) %>%
          GSL = CHELSA_gsl_1981_2010_V2_1, NPP = CHELSA_npp_1981_2010_V2_1,
          coarse_frag = SG_Coarse_fragments_005cm, silt = SG_Silt_Content_005cm,
          soil_pH = SG_Soil_pH_H2O_005cm)
-df
 
+# read dataframe of community matrix
 community_mat <- data.frame(fread("species_data_covariates_1981_2010_scale_92766.csv", sep=','))
-community_mat[1:5,1:8]
 
+# join both dataframes
 df_com <- inner_join(df, community_mat)
-df_com[1:5, 1:25]
-colnames(df_com)[1:50]
-
-
-#df_com_sample <- sample_n(df_com, 1000)
-#df_com_sample
 
 cov_names <- c("annual_P", "P_season", "MAT", "T_season", "GSL", "NPP", "coarse_frag",  
                "silt", "soil_pH")
 evopca_names <- c("Axis1", "Axis2", "Axis3")
 nmds_names <- c("MDS1", "MDS2", "MDS3")
 
+# create dataframe of all covariates, and climate and soil variables separately
 covs <- df %>% select(all_of(cov_names))
 covs <- decostand(covs, method = "standardize") # mean = 0, standard deviation = 1
 clim_covs <- covs %>% select('annual_P', 'P_season', 'MAT', 'T_season', 'GSL', 'NPP')
 soil_covs <- covs %>% select('coarse_frag', 'silt', 'soil_pH')
 
+# create dataframe of scaled evoPCA values
 evopca <- df %>% select(all_of(evopca_names))
 evopca <- decostand(evopca, method = "standardize") # mean = 0, standard deviation = 1
 
+# create dataframe of scaled NMDS values
 nmds <- df %>% select(all_of(nmds_names))
 nmds <- decostand(nmds, method = "standardize") # mean = 0, standard deviation = 1
 
+# create community matrix dataframe
 com <- df_com %>% select(-one_of('x', 'y', 'area', cov_names, evopca_names, nmds_names))
 
-########## evoPCA ############
+########## redundancy analysis for evoPCA ############
 
 evopca.rda.all <- rda(formula = evopca ~ ., data=covs)
-# summary(evopca.rda.all)
 RsquareAdj(evopca.rda.all) # explained variance $adj.r.squared [1] 0.6580532
 anova.cca(evopca.rda.all, step = 1000) # statistically significant (p=0.001)
 
@@ -64,7 +64,7 @@ plot(evopca.var.part, Xnames = c("Climate", "Soil"), # name the partitions
      cex = 1)
 
 
-######## NMDS ###############
+######## redundancy analysis for NMDS ###############
 
 nmds.rda.all <- rda(formula = nmds ~ ., data=covs)
 RsquareAdj(nmds.rda.all) # explained variance $adj.r.squared [1] 0.1427136

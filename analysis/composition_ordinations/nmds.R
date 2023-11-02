@@ -9,8 +9,11 @@ library(gridExtra)
 library(parallel)
 library(tictoc)
 
+# set working directory 
 setwd('/Users/nina/Documents/treemap/treemap/data/')
+# name of community matrix file
 comm.matrix.filename <- 'species_data_covariates_1981_2010_scale_92766.csv'
+# prefix for output files
 output.file.prefix <- 'nmds_3d_1981_2010_scale_92766'
 
 # if distance matrix was not already computed, compute it

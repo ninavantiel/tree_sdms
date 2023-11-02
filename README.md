@@ -8,6 +8,7 @@ code run with Python 3.8.13, Google Earth Engine, gsutil, ...
 TODO specify packages
 
 ## Model
+The code for the pipeline for mapping tree species distributions combining environmental niche modelling and geographic range polygons can be found in the  `model` directory. 
 `config.py` contains variables and functions that are shared across all scripts. These are imported in other python scripts with `from config import *`. Variable values are accessible in bash scripts with `python3 config.py "VAR_NAME"`, replacing `VAR_NAME` with the name of the variable of interest.
 
 #### Prepare psueoabsences
@@ -40,3 +41,4 @@ Compute cross-validation results and obtain optimal binarization threshold. Trai
 Run bash script `run_5_sdm_mapping.sh` to run python script `p5_sdm_mapping.py` for each species in `species_list.csv` for which the cross-validation have already been completed and the final model predictions have not yet been computed.
 
 ## Analysis
+The code for the downstream analyses and figures using the modelled distributions can be found in the `analysis` directory. These analyses are descibed more precisely in the file `analysis/README.md` and in the manuscript "Regional uniqueness of tree species composition and response to forest loss and climate change".

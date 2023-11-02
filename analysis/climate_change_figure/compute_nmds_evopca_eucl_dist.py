@@ -1,28 +1,58 @@
 import sys
 sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
 from config_figures import *
-
+from sklearn.preprocessing import MinMaxScaler
 import os
 os.chdir('/Users/nina/Documents/treemap/treemap/data/')
 
+def scale_col(colname, df): return MinMaxScaler().fit_transform(df[[colname]])
+
+def eucl_dist(varlist, df): 
+    return np.array([(df[v + '_current'] - df[v + '_future']) ** 2 for v in varlist]).sum(axis=0) ** 0.5
+
 if __name__ == '__main__':
-    print(sys.path)
-    nmds = pd.read_csv('nmds_3d_ecoregions_current_future.csv').rename(columns={'y':'ECO_ID'})
-    nmds_current = nmds[nmds.current_or_future == 'current'][['ECO_ID','MDS1','MDS2','MDS3']].rename(columns={'MDS1':'current_MDS1','MDS2':'current_MDS2','MDS3':'current_MDS3'})
-    nmds_future = nmds[nmds.current_or_future == 'future'][['ECO_ID','MDS1','MDS2','MDS3']].rename(columns={'MDS1':'future_MDS1','MDS2':'future_MDS2','MDS3':'future_MDS3'})
-    nmds = pd.merge(nmds_current, nmds_future)
+    # --- NMDS ---
+    nmds = pd.read_csv('nmds_3d_ecoregions_current_future.csv').rename(
+        columns={'y':'ECO_ID'}).drop(columns=['x'])
     nmds['ECO_ID'] = nmds['ECO_ID'].astype(int)
-
-    evopca = pd.read_csv('evopca_ecoregions_current_future_df.csv')
-    evopca['ECO_ID'] = evopca.apply(lambda x: x.site.split('_')[1], axis=1)
-    evopca['current_or_future'] = evopca.apply(lambda x: x.site.split('_')[2], axis=1)
-    evopca_current = evopca[evopca.current_or_future == 'current'][['ECO_ID','Axis1','Axis2','Axis3']].rename(columns={'Axis1':'current_evoPCA1','Axis2':'current_evoPCA2','Axis3':'current_evoPCA3'})
-    evopca_future = evopca[evopca.current_or_future == 'future'][['ECO_ID','Axis1','Axis2','Axis3']].rename(columns={'Axis1':'future_evoPCA1','Axis2':'future_evoPCA2','Axis3':'future_evoPCA3'})
-    evopca = pd.merge(evopca_current, evopca_future)
-    evopca['ECO_ID'] = evopca['ECO_ID'].astype(int)
     
-    df = pd.merge(nmds, evopca, on='ECO_ID')
-    df['MDS_euclidean_distance'] = df.apply(lambda x: ((x['current_MDS1']-x['future_MDS1']) ** 2 + ((x['current_MDS2']-x['future_MDS2']) ** 2) + ((x['current_MDS3']-x['future_MDS3']) ** 2)) ** 0.5, axis=1)
-    df['evoPCA_euclidean_distance'] = df.apply(lambda x: ((x['current_evoPCA1']-x['future_evoPCA1']) ** 2 + ((x['current_evoPCA2']-x['future_evoPCA2']) ** 2) + ((x['current_evoPCA3']-x['future_evoPCA3']) ** 2)) ** 0.5, axis=1)
+    # scale the 3 ordinations axes (current and future together)
+    nmds['MDS1_scaled'] = scale_col('MDS1', nmds)
+    nmds['MDS2_scaled'] = scale_col('MDS2', nmds)
+    nmds['MDS3_scaled'] = scale_col('MDS3', nmds)
 
-    df.to_csv('nmds_evopca_eucl_dist_ecoregions_current_future.csv', index=False)
+    # merge dataframes such that current and future NMDS values are on the same row
+    nmds_merged = pd.merge(
+        nmds[nmds.current_or_future == 'current'].drop(columns='current_or_future'), 
+        nmds[nmds.current_or_future == 'future'].drop(columns='current_or_future'),
+        on = 'ECO_ID', suffixes=('_current', '_future')
+    )
+
+    # compute euclidean distances between current and future NMDS values (unscaled and scaled)
+    nmds_merged['eucl_dist'] = eucl_dist(['MDS1', 'MDS2', 'MDS3'], nmds_merged)
+    nmds_merged['eucl_dist_scaled'] = eucl_dist(['MDS1_scaled', 'MDS2_scaled', 'MDS3_scaled'], nmds_merged)
+
+    nmds_merged.to_csv('nmds_current_future_eucl_dist.csv', index=False)
+
+    # --- evoPCA ---
+    evopca = pd.read_csv('evopca_ecoregions_current_future_df.csv')
+    evopca['ECO_ID'] = evopca.apply(lambda x: x.site.split('_')[1], axis=1).astype(int)
+    evopca['current_or_future'] = evopca.apply(lambda x: x.site.split('_')[2], axis=1)
+
+    # scale the 3 ordinations axes (current and future together)
+    evopca['Axis1_scaled'] = scale_col('Axis1', evopca)
+    evopca['Axis2_scaled'] = scale_col('Axis2', evopca)
+    evopca['Axis3_scaled'] = scale_col('Axis3', evopca)
+
+    # merge dataframes such that current and future evoPCA values are on the same row
+    evopca_merged = pd.merge(
+        evopca[evopca.current_or_future == 'current'].drop(columns=['current_or_future','site']), 
+        evopca[evopca.current_or_future == 'future'].drop(columns=['current_or_future','site']),
+        on = 'ECO_ID', suffixes=('_current', '_future')
+    )
+
+    # compute euclidean distances between current and future evoPCA values (unscaled and scaled)
+    evopca_merged['eucl_dist'] = eucl_dist(['Axis1', 'Axis2', 'Axis3'], evopca_merged)
+    evopca_merged['eucl_dist_scaled'] = eucl_dist(['Axis1_scaled', 'Axis2_scaled', 'Axis3_scaled'], evopca_merged)
+
+    evopca_merged.to_csv('evoPCA_current_future_eucl_dist.csv', index=False)

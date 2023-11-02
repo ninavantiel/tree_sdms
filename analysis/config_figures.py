@@ -1,12 +1,10 @@
-# # import os
+import os
 import sys
 import pandas as pd
 import numpy as np 
-# import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
-# from scipy.stats import gaussian_kde
 
 import ee
 try: ee.Initialize()
@@ -14,7 +12,6 @@ except: sys.exit('ERROR starting earthengine python API')
 
 #google drive
 google_drive_folder = 'treemap'
-# google_drive_path = '~/Google Drive/My Drive/' + google_drive_folder
 
 # earthengine assets
 earthengine_folder = 'projects/crowtherlab/nina/treemap/'# users/ninavantiel/treemap/' 
@@ -23,6 +20,7 @@ covariate_img = ee.Image(earthengine_folder + 'composite_to_sample')
 sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
 sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
+sdm_sum = ee.Image('projects/crowtherlab/nina/treemap_figures/sdm_sum')
 
 ecoregions = ee.FeatureCollection(earthengine_folder + 'Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())

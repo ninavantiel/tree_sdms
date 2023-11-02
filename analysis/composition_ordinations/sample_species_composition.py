@@ -1,36 +1,37 @@
-import ee
-ee.Initialize()
-
-import os
 import sys
+sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+from config_figures import *
+
 import random
-import pandas as pd
-import numpy as np
 from time import sleep
 from functools import partial
 from contextlib import contextmanager
 import multiprocessing
 
-scaling_factor = 100 # original scale is 30 arc seconds, sampling scale will be 30*[scaling_factor] arc seconds
-sdm_band = 'covariates_2071_2100_ssp585'
+# set sampling scale: original scale is 30 arc seconds
+# sampling scale will be 30*[scaling_factor] arc seconds
+scaling_factor = 100 
+scale_to_use = scale_to_use.multiply(scaling_factor)
 
+# SETTING gridsize AND chunksize MAY REQUIRE SOME TRIAL AND ERROR
+# number of gridcells in which to process the data, grid is of size gridsize*gridsize 
 gridsize = 200
+# number of sites to process in one "getInfo"
 chunksize = 5000 
+# name of band to sample from images in image collection
+sdm_band = 'covariates_1981_2010'
 
-sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
-sdm_sum = ee.Image('projects/crowtherlab/nina/treemap_figures/sdm_sum')
-sdm_bboxes = ee.FeatureCollection('projects/crowtherlab/nina/treemap_figures/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
-scale_to_use = sdms.first().projection().nominalScale().multiply(scaling_factor)
-
-def unmask_mask(img): return img.mask(img.mask().gte(0.5)).unmask(0, False)
-sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = 'EPSG:4326', scale = scale_to_use))
-pixel_image = ee.Image.pixelCoordinates(sdms_to_sample.first().projection())
-
-unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
-
+# set working directory 
 os.chdir('/Users/nina/Documents/treemap/treemap/')
+# location of output directory for sampled gridcell files (intermediate output)
 outdir = 'data/species_data_' + sdm_band + '_gridsize_' + str(gridsize) + '_scale_' + str(int(scale_to_use.getInfo())) + '/'
+# location of output file for merged sampled data (final output)
 outfile = 'data/species_data_' + sdm_band + '_scale_' + str(int(scale_to_use.getInfo())) + '.csv'
+
+# select band of interest and reproject to defined scale for each species' image
+sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = 'EPSG:4326', scale = scale_to_use))
+# create image with pixel coordinates in defined projection
+pixel_image = ee.Image.pixelCoordinates(sdms_to_sample.first().projection())
 
 def generateGrid(region, size):
 	"""Generate a grid covering the region with size*size rectangles"""
@@ -57,6 +58,7 @@ def generateGrid(region, size):
 	return grid
 
 def write_results(results, filepath, props):
+	"""Write results from sampling in a csv file"""
 	if len(results) > 0:
 		print(f"Writing {len(results)} rows in file {filepath}")
 		with open(filepath, "w") as f:
@@ -70,6 +72,7 @@ def write_results(results, filepath, props):
 			f.close()
 
 def sample_species_data(n, grid, outdir):
+	"""Sample values of SDMs within gridcell"""
 	# get gridcell 
 	gridcell = grid.get(n)
 
@@ -111,7 +114,6 @@ def sample_species_data(n, grid, outdir):
 
 			# if 0 sites were sampled, empty gridcell, return
 			if n_sampled == 0: 
-				#print(f"{n}: empty gridcell")
 				write_results([], grid_filepath, props)
 				return
 
@@ -135,8 +137,6 @@ def sample_species_data(n, grid, outdir):
 			write_results(results, grid_filepath, props)
 
 		except Exception as e:
-			#print(e)
-			#return
 			done = False
 			idle = (1 if idle > 5 else idle + 1)
 			print("idling for %d" % idle)
@@ -153,17 +153,18 @@ if __name__ == '__main__':
 	# print scale at which SDM data will be sampled (30 arc-seconds * scaling_factor)
 	print('Scale:', scale_to_use.getInfo())
 
-	# print path to output directory for sampled data, create directory if it does not exist
+	# print path to output directory for sampled data for each gridcelll
 	print('Ouput directory:', outdir)
+	# create directory if it does not exist
 	if not os.path.exists(outdir): os.makedirs(outdir)
 	outdir_list = os.listdir(outdir)
 	
-	# print path to output file for merged sampled data
-	# if file exists, do not continue script
+	# print path to final output file for merged sampled data
 	print('Output file:', outfile)
+	# if file exists, do not continue script
 	if os.path.exists(outfile): sys.exit('Sampled species data file already exists.')
 
-	# create grid and filter out gridcells in which there is no SDM data (in the oceans)
+	# create grid and filter out gridcells in which there is no SDM data 
 	grid = sdm_sum.reduceRegions(
 		collection = generateGrid(unbounded_geo, gridsize), reducer = ee.Reducer.anyNonZero(), scale = scale_to_use
 	).filter(ee.Filter.eq('any', 1)).map(
