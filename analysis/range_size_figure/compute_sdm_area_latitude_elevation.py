@@ -1,5 +1,9 @@
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 from config_figures import *
 
 def get_sdm_area_latitude_elevation(sdm):

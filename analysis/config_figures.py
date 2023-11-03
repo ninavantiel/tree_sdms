@@ -5,8 +5,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from math import ceil
-
+import random
+import time
+from time import sleep
+from functools import partial
+from contextlib import contextmanager
+import multiprocessing
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 import ee
+
 try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
@@ -14,10 +24,11 @@ except: sys.exit('ERROR starting earthengine python API')
 google_drive_folder = 'treemap'
 
 # earthengine assets
-earthengine_folder = 'projects/crowtherlab/nina/treemap/'# users/ninavantiel/treemap/' 
+earthengine_folder = 'projects/crowtherlab/nina/treemap/'
 
 covariate_img = ee.Image(earthengine_folder + 'composite_to_sample')
-sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary').filter(ee.Filter.gte('nobs',90))
+all_sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary')
+sdms = all_sdms.filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
 sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
 
@@ -49,27 +60,26 @@ forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year
 elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
 splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
 splot_sample_folder = 'users/ninavantiel/treemap/sPlot_comparison/splot_sdm/'
-
 sdm_biome_drive_filename = 'sdm_biomes'
 
+# local directories and files
+datadir = '/Users/nina/Documents/treemap/treemap/data/'
+figuredir = '/Users/nina/Documents/treemap/treemap/figures/'
 
-# #filenames
+validation_stats_file = datadir + 'sdm_stats_validation.csv'
+sdm_splot_file = datadir + 'sdm_splot_comparison.csv'
+sdm_mhs_iou_file = datadir + 'MHS_IoU.csv'
+nmds_evopca_covariates_file = datadir + 'ordinations_covariates_1981_2010.csv'
+sdms_area_lat_elev_file = datadir + sdms_area_lat_elev_filename + '.csv'
+sdm_biome_drive_file = datadir + sdm_biome_drive_filename + '.csv'
 
-
-# sdms_forest10_area_lat_elev_drive_filename = 'sdms_forest_area_latitude_elevation'
-# sdms_forest10_area_lat_elev_asset_filename = 'sdms_forest_area_latitude_elevation'
-# sdms_forest10_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_forest10_area_lat_elev_asset_filename)
-
-# sdm_area_latitude_drive_filename = 'sdms_area_latitude'
-# sdm_area_lat_min_tree_cover_asset_filename = 'sdms_area_latitude'
-
-# sdms_lat_elev_drive_filename = 'sdms_latitude_elevation'
-# sdms_lat_elev_asset_filename = 'sdms_latitude_elevation_fc'
-
-
-# sdm_realm_drive_filename = 'sdm_realms'
-
-# nmds_sampled_data_dir = '../../nmds_sampled_data'
+sample_ecoregion_dir = datadir + 'ecoregion_species_composition/'
+sample_ecoregion_file = datadir + 'ecoregion_species_sampled.csv'
+ecoregion_nmds_file = datadir + 'nmds_3d_ecoregions_current_future.csv'
+ecoregion_nmds_eucl_dist_file = datadir + 'nmds_current_future_eucl_dist.csv'
+ecoregion_evopca_file = datadir + 'evopca_ecoregions_current_future_df.csv'
+ecoregion_evopca_eucl_dist_file = datadir + 'evoPCA_current_future_eucl_dist.csv'
+climate_change_ecoregion_file = datadir + 'climate_change_ecoregion_df.csv'
 
 #function masking SDM pixels equal to 0 and pixels that are less than 50% within the SDM range (clipped)
 def mask_sdm(sdm): return sdm.mask(sdm.mask().gte(0.5)).selfMask()

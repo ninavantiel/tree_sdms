@@ -1,12 +1,10 @@
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 from config_figures import *
-
-import random
-from time import sleep
-from functools import partial
-from contextlib import contextmanager
-import multiprocessing
 
 # set sampling scale: original scale is 30 arc seconds
 # sampling scale will be 30*[scaling_factor] arc seconds
@@ -21,12 +19,10 @@ chunksize = 5000
 # name of band to sample from images in image collection
 sdm_band = 'covariates_1981_2010'
 
-# set working directory 
-os.chdir('/Users/nina/Documents/treemap/treemap/')
 # location of output directory for sampled gridcell files (intermediate output)
-outdir = 'data/species_data_' + sdm_band + '_gridsize_' + str(gridsize) + '_scale_' + str(int(scale_to_use.getInfo())) + '/'
+outdir = datadir + 'species_data_' + sdm_band + '_gridsize_' + str(gridsize) + '_scale_' + str(int(scale_to_use.getInfo())) + '/'
 # location of output file for merged sampled data (final output)
-outfile = 'data/species_data_' + sdm_band + '_scale_' + str(int(scale_to_use.getInfo())) + '.csv'
+outfile = datadir + 'species_data_' + sdm_band + '_scale_' + str(int(scale_to_use.getInfo())) + '.csv'
 
 # select band of interest and reproject to defined scale for each species' image
 sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = 'EPSG:4326', scale = scale_to_use))

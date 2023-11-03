@@ -1,16 +1,13 @@
-from contextlib import contextmanager
-import multiprocessing
-from functools import partial
-import time
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 from config_figures import *
 
-os.chdir('/Users/nina/Documents/treemap/treemap/')
-outdir = 'data/ecoregion_species_composition/'
-
 def outfile(ecoid):
-    return outdir + 'ecoregion_' + str(ecoid) + '.csv'
+    return sample_ecoregion_dir + 'ecoregion_' + str(ecoid) + '.csv'
 
 def get_ecoregion_species(ecoid):
     """Compute which species are present in ecoregion"""
@@ -85,9 +82,9 @@ if __name__ == '__main__':
     print(n_ecoids, 'ecoregions')
 
 	# create directory if it does not exist
-    if not os.path.exists(outdir): os.makedirs(outdir)
+    if not os.path.exists(sample_ecoregion_dir): os.makedirs(sample_ecoregion_dir)
     # print number of ecoregions already sampled
-    outdir_list = os.listdir(outdir)
+    outdir_list = os.listdir(sample_ecoregion_dir)
     print(len(outdir_list), 'ecoregions done')
 
 	# if not all ecoregions have been sampled, sample them
@@ -102,11 +99,11 @@ if __name__ == '__main__':
         species_list = sdms.aggregate_array('system:index').getInfo()
 
         for i, filename in enumerate(outdir_list):
-            n = sum(1 for l in open(outdir + filename))
+            n = sum(1 for l in open(sample_ecoregion_dir + filename))
             
             # if files has at least 1 line, read with pandas
             if n != 0: 
-                df = pd.read_csv(outdir + filename)
+                df = pd.read_csv(sample_ecoregion_dir + filename)
                 missing_species = [s for s in species_list if s not in df.species.to_list()]
                 df = pd.concat([df, pd.DataFrame({
                     'species': missing_species, 'current': np.zeros(len(missing_species)), 'future': np.zeros(len(missing_species))
@@ -120,4 +117,4 @@ if __name__ == '__main__':
 
         df_merge = pd.concat(df_list)
         print(df_merge.shape)
-        df_merge.to_csv('data/ecoregion_species_sampled.csv', index = True, index_label='site')
+        df_merge.to_csv(sample_ecoregion_file, index = True, index_label='site')

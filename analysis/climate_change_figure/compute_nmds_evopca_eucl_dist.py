@@ -1,9 +1,10 @@
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 from config_figures import *
-from sklearn.preprocessing import MinMaxScaler
-
-os.chdir('/Users/nina/Documents/treemap/treemap/data/')
 
 def scale_col(colname, df): 
     return MinMaxScaler().fit_transform(df[[colname]])
@@ -13,8 +14,7 @@ def eucl_dist(varlist, df):
 
 if __name__ == '__main__':
     # --- NMDS ---
-    nmds = pd.read_csv('nmds_3d_ecoregions_current_future.csv').rename(
-        columns={'y':'ECO_ID'}).drop(columns=['x'])
+    nmds = pd.read_csv(ecoregion_nmds_file).rename(columns={'y':'ECO_ID'}).drop(columns=['x'])
     nmds['ECO_ID'] = nmds['ECO_ID'].astype(int)
     
     # scale the 3 ordinations axes (current and future together)
@@ -33,10 +33,10 @@ if __name__ == '__main__':
     nmds_merged['eucl_dist'] = eucl_dist(['MDS1', 'MDS2', 'MDS3'], nmds_merged)
     nmds_merged['eucl_dist_scaled'] = eucl_dist(['MDS1_scaled', 'MDS2_scaled', 'MDS3_scaled'], nmds_merged)
 
-    nmds_merged.to_csv('nmds_current_future_eucl_dist.csv', index=False)
+    nmds_merged.to_csv(ecoregion_nmds_eucl_dist_file, index=False)
 
     # --- evoPCA ---
-    evopca = pd.read_csv('evopca_ecoregions_current_future_df.csv')
+    evopca = pd.read_csv(ecoregion_evopca_file)
     evopca['ECO_ID'] = evopca.apply(lambda x: x.site.split('_')[1], axis=1).astype(int)
     evopca['current_or_future'] = evopca.apply(lambda x: x.site.split('_')[2], axis=1)
 
@@ -56,4 +56,4 @@ if __name__ == '__main__':
     evopca_merged['eucl_dist'] = eucl_dist(['Axis1', 'Axis2', 'Axis3'], evopca_merged)
     evopca_merged['eucl_dist_scaled'] = eucl_dist(['Axis1_scaled', 'Axis2_scaled', 'Axis3_scaled'], evopca_merged)
 
-    evopca_merged.to_csv('evoPCA_current_future_eucl_dist.csv', index=False)
+    evopca_merged.to_csv(ecoregion_evopca_eucl_dist_file, index=False)

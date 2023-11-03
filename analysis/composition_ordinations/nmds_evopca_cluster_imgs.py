@@ -1,5 +1,9 @@
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 from config_figures import *
 
 if __name__ == '__main__':
@@ -13,8 +17,8 @@ if __name__ == '__main__':
     ], proj)))
 
     nmds_cluster_img = fc_with_geo.reduceToImage(['nmds_cluster'], ee.Reducer.first()).toInt().add(ee.Image.constant(1)).toInt()
-    export_image_to_drive(nmds_cluster_img, 'nmds_cluster_v2')
+    export_image_to_drive(nmds_cluster_img, 'nmds_cluster')
 
     evopca_cluster_img = fc_with_geo.reduceToImage(['evopca_cluster'], ee.Reducer.first()).toInt().add(ee.Image.constant(1).toInt()).toInt()
-    export_image_to_drive(evopca_cluster_img, 'evopca_cluster_v2')
+    export_image_to_drive(evopca_cluster_img, 'evopca_cluster')
     

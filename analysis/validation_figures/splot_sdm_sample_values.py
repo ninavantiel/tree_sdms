@@ -1,6 +1,10 @@
 import sys
-sys.path.insert(0, '/Users/nina/Documents/treemap/treemap/analysis')
-from config_figures import * 
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir) 
+from config_figures import *
 
 def splot_sdm_comparison(species):
     sdm = sdms.filter(ee.Filter.eq('system:index', species)).first().select('covariates_1981_2010')
