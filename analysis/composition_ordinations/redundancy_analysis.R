@@ -3,10 +3,10 @@ library(tidyverse)
 library(data.table)
 
 # set working directory 
-setwd('/Users/nina/Documents/treemap/treemap/data/')
+setwd('/Users/nina/Documents/treemap/treemap/data/') 
 
 # read dataframe with ordination and covariate values
-df <- as_tibble(read.csv('ordinations_covariates_1981_2010.csv')) %>% 
+df <- as_tibble(read.csv('nmds_evopca_covariates_equal_area.csv')) %>% 
   select(-.geo, -system.index) %>% 
   rename(MAT = CHELSA_bio1_1981_2010_V2_1, T_season = CHELSA_bio4_1981_2010_V2_1, 
          annual_P = CHELSA_bio12_1981_2010_V2_1, P_season = CHELSA_bio15_1981_2010_V2_1,
@@ -15,7 +15,7 @@ df <- as_tibble(read.csv('ordinations_covariates_1981_2010.csv')) %>%
          soil_pH = SG_Soil_pH_H2O_005cm)
 
 # read dataframe of community matrix
-community_mat <- data.frame(fread("species_data_covariates_1981_2010_scale_92766.csv", sep=','))
+community_mat <- data.frame(fread("species_data_covariates_1981_2010_equal_area_scale_100000.csv", sep=','))
 
 # join both dataframes
 df_com <- inner_join(df, community_mat)
@@ -45,15 +45,15 @@ com <- df_com %>% select(-one_of('x', 'y', 'area', cov_names, evopca_names, nmds
 ########## redundancy analysis for evoPCA ############
 
 evopca.rda.all <- rda(formula = evopca ~ ., data=covs)
-RsquareAdj(evopca.rda.all) # explained variance $adj.r.squared [1] 0.6580532
+RsquareAdj(evopca.rda.all) # explained variance $adj.r.squared [1] 0.5764499
 anova.cca(evopca.rda.all, step = 1000) # statistically significant (p=0.001)
 
 evopca.rda.clim <- rda(formula = evopca ~ ., data=clim_covs)
-RsquareAdj(evopca.rda.clim) # explained variance $adj.r.squared [1] 0.5907046
+RsquareAdj(evopca.rda.clim) # explained variance $adj.r.squared [1] 0.51663
 anova.cca(evopca.rda.clim, step = 1000) # statistically significant (p=0.001)
 
 evopca.rda.soil <- rda(formula = evopca ~ ., data=soil_covs)
-RsquareAdj(evopca.rda.soil) # explained variance $adj.r.squared [1] 0.416911
+RsquareAdj(evopca.rda.soil) # explained variance $adj.r.squared [1] 0.4832123
 anova.cca(evopca.rda.soil, step = 1000) # statistically significant (p=0.001)
 
 evopca.var.part <- varpart(evopca, clim_covs, soil_covs)
@@ -67,15 +67,15 @@ plot(evopca.var.part, Xnames = c("Climate", "Soil"), # name the partitions
 ######## redundancy analysis for NMDS ###############
 
 nmds.rda.all <- rda(formula = nmds ~ ., data=covs)
-RsquareAdj(nmds.rda.all) # explained variance $adj.r.squared [1] 0.1427136
+RsquareAdj(nmds.rda.all) # explained variance $adj.r.squared [1] 0.1185482
 anova.cca(nmds.rda.all, step = 1000) # statistically significant (p=0.001)
 
 nmds.rda.clim <- rda(formula = nmds ~ ., data=clim_covs)
-RsquareAdj(nmds.rda.clim) # explained variance $adj.r.squared [1] 0.1348053
+RsquareAdj(nmds.rda.clim) # explained variance $adj.r.squared [1] 0.1084375
 anova.cca(nmds.rda.clim, step = 1000) # statistically significant (p=0.001)
 
 nmds.rda.soil <- rda(formula = nmds ~ ., data=soil_covs)
-RsquareAdj(nmds.rda.soil) # explained variance $adj.r.squared [1] 0.07970463
+RsquareAdj(nmds.rda.soil) # explained variance $adj.r.squared [1] 0.07232076
 anova.cca(nmds.rda.soil, step = 1000) # statistically significant (p=0.001)
 
 nmds.var.part <- varpart(nmds, clim_covs, soil_covs)

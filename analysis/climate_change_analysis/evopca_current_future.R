@@ -36,9 +36,9 @@ tic()
 evopca <- evopcahellinger(tree.a$scenario.3, comm.matrix.sel, scannf = FALSE, nf = 3)
 toc()
 
-save(evopca, file = 'evopca_ecoregions_current_future.RData')
+save(evopca, file = 'evopca_ecoregions.RData')
 
-# load('evopca_ecoregions_current_future.RData')
+# load('evopca_ecoregions.RData')
 
 df <- comm.matrix.sel %>% rownames_to_column('site') %>% 
   select('site') %>% cbind(evopca$li)

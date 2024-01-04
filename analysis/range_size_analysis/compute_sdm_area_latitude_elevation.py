@@ -50,7 +50,7 @@ def get_sdm_area_latitude_elevation(sdm):
 
 if __name__ == '__main__':
     sdms_area_lat_elev = sdms.map(get_sdm_area_latitude_elevation).flatten()
-    export_table_to_asset(sdms_area_lat_elev, sdms_area_lat_elev_filename, folder=sdms_area_lat_elev_folder)
+    export_table_to_asset(sdms_area_lat_elev, sdms_area_lat_elev_filename)
     export_table_to_drive(sdms_area_lat_elev, sdms_area_lat_elev_filename) 
 
 

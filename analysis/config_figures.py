@@ -32,7 +32,7 @@ sdms = all_sdms.filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
 sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
 
-sdm_sum_filename = 'sdm_sum'
+sdm_sum_filename = 'sdm_sum_equal_area'
 sdm_sum_folder = 'projects/crowtherlab/nina/treemap_figures/'
 sdm_sum = ee.Image(sdm_sum_folder + sdm_sum_filename)
 
@@ -44,13 +44,17 @@ biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 
 ordinations_folder = 'users/ninavantiel/treemap/ordinations/'
-nmds = ee.FeatureCollection(ordinations_folder + 'nmds_scale_mult_100')
-evopca = ee.FeatureCollection(ordinations_folder + 'evopca_scale_mult_100')
-nmds_evopca_fc_filename = 'nmds_evopca_fc'
+nmds = ee.FeatureCollection(ordinations_folder + 'nmds_equal_area')#'nmds_scale_mult_100')
+evopca = ee.FeatureCollection(ordinations_folder + 'evopca_equal_area')#'evopca_scale_mult_100')
+nmds_evopca_fc_filename = 'nmds_evopca_equal_area_fc'
 nmds_evopca_fc = ee.FeatureCollection(ordinations_folder + nmds_evopca_fc_filename)
-nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_cluster_v2')
+nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_equal_area_cluster') 
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
+
+# equal area projection for community level analyses
+wkt6933 = '   PROJCS["WGS 84 / NSIDC EASE-Grid 2.0 Global",       GEOGCS["WGS 84",           DATUM["WGS_1984",               SPHEROID["WGS 84",6378137,298.257223563]],           PRIMEM["Greenwich",0],           UNIT["degree",0.0174532925199433,               AUTHORITY["EPSG","9122"]],           AUTHORITY["EPSG","4326"]],       PROJECTION["Cylindrical_Equal_Area"],       PARAMETER["standard_parallel_1",30],       PARAMETER["central_meridian",0],       PARAMETER["False_easting",0],       PARAMETER["False_northing",0],       UNIT["metre",1],       AXIS["Easting",EAST],       AXIS["Northing",NORTH],       AUTHORITY["EPSG","6933"]]'
+proj6933 = ee.Projection(wkt6933)
 
 sdms_area_lat_elev_filename = 'sdms_area_lat_elev'
 sdms_area_lat_elev_folder = 'users/ninavantiel/treemap/range_size/'
@@ -68,8 +72,8 @@ figuredir = '/Users/nina/Documents/treemap/treemap/figures/'
 
 validation_stats_file = datadir + 'sdm_stats_validation.csv'
 sdm_splot_file = datadir + 'sdm_splot_comparison.csv'
-sdm_mhs_iou_file = datadir + 'MHS_IoU.csv'
-nmds_evopca_covariates_file = datadir + 'ordinations_covariates_1981_2010.csv'
+sdm_mhs_iou_file = datadir + 'SDM_MHS_IoU.csv'
+nmds_evopca_covariates_file = datadir + 'nmds_evopca_covariates_equal_area.csv'
 sdms_area_lat_elev_file = datadir + sdms_area_lat_elev_filename + '.csv'
 sdm_biome_drive_file = datadir + sdm_biome_drive_filename + '.csv'
 

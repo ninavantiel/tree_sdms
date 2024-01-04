@@ -8,7 +8,7 @@ library(tidyr)
 library(tictoc)
 
 # set working directory 
-setwd('/Users/nina/Documents/treemap/treemap/data/')
+setwd('/path/to/your/data/dir/') # ** CHANGE THIS TO YOUR LOCAL DATA DIRECTORY **
 # name of community matrix file
 comm.matrix.filename <- 'ecoregion_species_sampled.csv'
 # prefix for output files

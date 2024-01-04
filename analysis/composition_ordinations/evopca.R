@@ -6,7 +6,7 @@ library(tictoc)
 library(data.table)
 
 # set working directory 
-setwd('/Users/nina/Documents/treemap/treemap/data/')
+setwd('/Users/nina/Documents/treemap/treemap/data/') 
 # name of community matrix file
 comm.matrix.filename <- 'species_data_covariates_1981_2010_scale_92766.csv'
 

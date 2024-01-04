@@ -19,6 +19,11 @@ eu_countries = [
 ]
 geometry = FAO_countries.filter(ee.Filter.inList('ADM0_NAME',eu_countries)).union()
 
+def get_area(mask_img, geometry=geometry, ):
+    return ee.Image.pixelArea().updateMask(mask_img).reduceRegion(
+       reducer = ee.Reducer.sum(), geometry = geometry, scale = scale_to_use, maxPixels = 1E13
+    ).get('area')
+
 def get_iou(mhs_img):
     sppName = mhs_img.getString('system:index')
     mhs_img = mhs_img.gte(0.5).selfMask().reproject(covariate_img.projection())
@@ -32,28 +37,23 @@ def get_iou(mhs_img):
     overlap = ee.Image.pixelArea().updateMask(pred_img).updateMask(mhs_img)
     combined = pred_img.unmask(0).add(mhs_img.unmask(0)).selfMask()
 
-    union = ee.Image.pixelArea().updateMask(combined).reduceRegion(
-       reducer = ee.Reducer.sum(), geometry = geometry, 
-       scale = covariate_img.projection().nominalScale(), maxPixels = 1E13
-    ).get('area')
-  
-    intersect = ee.Image.pixelArea().updateMask(overlap).reduceRegion(
-       reducer = ee.Reducer.sum(), geometry = geometry, 
-       scale = covariate_img.projection().nominalScale(), maxPixels = 1E13
-    ).get('area')
+    union = get_area(combined)  
+    intersect = get_area(overlap)
+    sdm_area = get_area(pred_img)
+    mhs_area = get_area(mhs_img)
   
     IoU = ee.Number(intersect).divide(union)
-    return mhs_img.set('IoU', IoU)
+    return ee.Feature(None, {'species': sppName, 'IoU': IoU, 'union': union, 'intersection': intersect, 'sdm_area': sdm_area, 'mhs_area': mhs_area})
 
 if __name__ == '__main__':
     results = mhs_ic.map(get_iou)
-    dict = ee.Dictionary.fromLists(
-        results.aggregate_array('system:index'),results.aggregate_array('IoU')
-    )
-    fc = ee.FeatureCollection(ee.List.sequence(0,24).map(
-        lambda el: ee.Feature(None).set({
-            'system:index': ee.List(dict.keys()).get(el),
-            'IoU': ee.List(dict.values()).get(el)
-        })
-    ))
-    export_table_to_drive(fc, 'MHS_IoU')
+    # dict = ee.Dictionary.fromLists(
+    #     results.aggregate_array('system:index'),results.aggregate_array('IoU')
+    # )
+    # fc = ee.FeatureCollection(ee.List.sequence(0,24).map(
+    #     lambda el: ee.Feature(None).set({
+    #         'system:index': ee.List(dict.keys()).get(el),
+    #         'IoU': ee.List(dict.values()).get(el)
+    #     })
+    # ))
+    export_table_to_drive(results, 'SDM_MHS_IoU')

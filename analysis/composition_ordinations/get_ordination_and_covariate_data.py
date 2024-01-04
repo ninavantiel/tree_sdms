@@ -13,4 +13,4 @@ if __name__ == '__main__':
         'CHELSA_gsl_1981_2010_V2_1', 'CHELSA_npp_1981_2010_V2_1'
     ]).reduceRegions(nmds_evopca_fc, ee.Reducer.mean())
     
-    export_table_to_drive(nmds_evopca_covs_fc, 'ordinations_covariates_1981_2010')
+    export_table_to_drive(nmds_evopca_covs_fc, 'nmds_evopca_with_sampled_covariates_1981_2010')

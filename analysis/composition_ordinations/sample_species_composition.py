@@ -8,12 +8,17 @@ from config_figures import *
 
 # set sampling scale: original scale is 30 arc seconds
 # sampling scale will be 30*[scaling_factor] arc seconds
-scaling_factor = 100 
-scale_to_use = scale_to_use.multiply(scaling_factor)
+# scaling_factor = 100 
+# scale_to_use = scale_to_use.multiply(scaling_factor)
+# crs_to_use = 'EPSG:4326'
+
+# sample with equal area projection EPSG:6933 with a 100km scale
+scale_to_use = ee.Number(1e5)
+crs_to_use = proj6933.atScale(scale_to_use)
 
 # SETTING gridsize AND chunksize MAY REQUIRE SOME TRIAL AND ERROR
 # number of gridcells in which to process the data, grid is of size gridsize*gridsize 
-gridsize = 200
+gridsize = 20
 # number of sites to process in one "getInfo"
 chunksize = 5000 
 # name of band to sample from images in image collection
@@ -25,9 +30,9 @@ outdir = datadir + 'species_data_' + sdm_band + '_gridsize_' + str(gridsize) + '
 outfile = datadir + 'species_data_' + sdm_band + '_scale_' + str(int(scale_to_use.getInfo())) + '.csv'
 
 # select band of interest and reproject to defined scale for each species' image
-sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = 'EPSG:4326', scale = scale_to_use))
+sdms_to_sample = sdms.map(lambda sdm: unmask_mask(sdm.select(sdm_band)).reproject(crs = crs_to_use, scale = scale_to_use))
 # create image with pixel coordinates in defined projection
-pixel_image = ee.Image.pixelCoordinates(sdms_to_sample.first().projection())
+pixel_image = ee.Image.pixelCoordinates(crs_to_use)
 
 def generateGrid(region, size):
 	"""Generate a grid covering the region with size*size rectangles"""
@@ -106,7 +111,7 @@ def sample_species_data(n, grid, outdir):
 		try:
 			# get number of sampled species and sites (pixels) in gridcell
 			n_sampled = sampled.size().getInfo()
-			print(f"{n}: {n_gridcell_species} species to sample at {n_sampled} points...")
+			print(f"{n}: {n_gridcell_species} species to sample at {n_sampled} points...")
 
 			# if 0 sites were sampled, empty gridcell, return
 			if n_sampled == 0: 
