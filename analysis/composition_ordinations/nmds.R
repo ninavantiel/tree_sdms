@@ -1,5 +1,4 @@
 library(vegan)
-library(ape)
 library(tibble)
 library(ggplot2)
 library(data.table)
