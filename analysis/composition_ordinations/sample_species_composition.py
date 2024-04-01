@@ -6,12 +6,6 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 from config_figures import *
 
-# set sampling scale: original scale is 30 arc seconds
-# sampling scale will be 30*[scaling_factor] arc seconds
-# scaling_factor = 100 
-# scale_to_use = scale_to_use.multiply(scaling_factor)
-# crs_to_use = 'EPSG:4326'
-
 # sample with equal area projection EPSG:6933 with a 100km scale
 scale_to_use = ee.Number(1e5)
 crs_to_use = proj6933.atScale(scale_to_use)

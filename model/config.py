@@ -20,13 +20,14 @@ except: sys.exit('ERROR starting earthengine python API')
 earthengine = subprocess.run(['which', 'earthengine'], stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n','')
 
 # Path to Google Cloud Storage Bucket to upload sampled data to
-bucket_path = 'gs://nina_other_bucket'
+bucket_path = 'gs://path/to/GCS/bucket' # ** CHANGE THIS TO YOUR GCS BUCKET NAME **
 
 # Paths to local directories for 
 # - sampled data
 # - file with merged sampled data for each species 
 # - sampled pseudoabsences 
-sampled_data_localdir = 'data/sampled_data'
+# ** CHANGE TO YOUR LOCAL DIRECTORIES **
+sampled_data_localdir = 'data/sampled_data' 
 merged_data_localdir = 'data/merged_data'
 sampled_pseudoabsences_localdir = 'data/sampled_pseudoabsences/'
 # Path to local file for merged sampled pseudoabsences
@@ -34,7 +35,7 @@ merged_pseudoabsences_filepath = 'data/pseudoabsences.csv'
 
 # GEE paths to folders and assets
 # Main folder 
-treemap_dir = 'projects/crowtherlab/nina/treemap' 
+treemap_dir = 'path/to/your/gee/folder' # ** CHANGE THIS TO THE PATH TO YOUR GEE FOLDER **
 # Folder for FeatureCollections of sampled data for each species
 sampled_data_dir = treemap_dir + '/sampled_data'
 # Folder for FeatureCollections of prepared occurrence data for each species

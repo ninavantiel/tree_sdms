@@ -21,5 +21,5 @@ if __name__ == '__main__':
     ], proj, False).transform('EPSG:4326', 100))).map(lambda f: f.set('area', f.geometry().area(10)))
 
     # export feature collection to asset
-    export_table_to_asset(fc_with_geo, nmds_evopca_fc_filename, ordinations_folder)
+    export_table_to_asset(fc_with_geo, nmds_evopca_fc_filename)
 

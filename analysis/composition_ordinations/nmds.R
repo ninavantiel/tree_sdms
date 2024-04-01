@@ -9,7 +9,7 @@ library(parallel)
 library(tictoc)
 
 # set working directory 
-setwd('/path/to/your/data/dir/') # ** CHANGE THIS TO YOUR LOCAL DATA DIRECTORY **
+setwd('path/to/your/data/dir/') # ** CHANGE THIS TO PATH TO YOUR DATA DIRECTORY **
 # name of community matrix file
 comm.matrix.filename <- 'species_data_covariates_1981_2010_scale_92766.csv'
 # prefix for output files

@@ -21,34 +21,32 @@ try: ee.Initialize()
 except: sys.exit('ERROR starting earthengine python API')
 
 #google drive
-google_drive_folder = 'treemap'
+google_drive_folder = 'treemap'  # ** CHANGE THIS TO YOUR GOOGLE DRIVE FOLDER NAME **
 
 # earthengine assets
-earthengine_folder = 'projects/crowtherlab/nina/treemap/'
+earthengine_folder = 'users/username/treemap/'  # ** CHANGE THIS TO THE PATH TO YOUR GOOGLE EARTHENGINE FOLDER **
 
 covariate_img = ee.Image(earthengine_folder + 'composite_to_sample')
-all_sdms = ee.ImageCollection('projects/crowtherlab/nina/treemap/sdms_binary')
+all_sdms = ee.ImageCollection(earthengine_folder + 'sdms_binary')
 sdms = all_sdms.filter(ee.Filter.gte('nobs',90))
 scale_to_use = sdms.first().projection().nominalScale()
-sdm_bboxes = ee.FeatureCollection('users/ninavantiel/treemap/sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
+sdm_bboxes = ee.FeatureCollection(earthengine_folder + 'sdms_bbox').filter(ee.Filter.inList('species', sdms.aggregate_array('system:index')))
 
 sdm_sum_filename = 'sdm_sum_equal_area'
-sdm_sum_folder = 'projects/crowtherlab/nina/treemap_figures/'
-sdm_sum = ee.Image(sdm_sum_folder + sdm_sum_filename)
+sdm_sum = ee.Image(earthengine_folder + sdm_sum_filename)
 
 FAO_countries = ee.FeatureCollection("FAO/GAUL/2015/level0")
-mhs_ic = ee.ImageCollection('users/johanvandenhoogen/2023_tree_sdms/mhs')
+mhs_ic = ee.ImageCollection(earthengine_folder + 'mhs')
 
 ecoregions = ee.FeatureCollection(earthengine_folder + 'Ecoregions')
 biome_image = ecoregions.reduceToImage(['BIOME_NUM'], ee.Reducer.first())
 biome_dictionary = ee.Dictionary.fromLists(ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NAME'), ecoregions.distinct('BIOME_NUM').aggregate_array('BIOME_NUM'))
 
-ordinations_folder = 'users/ninavantiel/treemap/ordinations/'
-nmds = ee.FeatureCollection(ordinations_folder + 'nmds_equal_area')#'nmds_scale_mult_100')
-evopca = ee.FeatureCollection(ordinations_folder + 'evopca_equal_area')#'evopca_scale_mult_100')
+nmds = ee.FeatureCollection(earthengine_folder + 'nmds_equal_area')
+evopca = ee.FeatureCollection(earthengine_folder + 'evopca_equal_area')
 nmds_evopca_fc_filename = 'nmds_evopca_equal_area_fc'
-nmds_evopca_fc = ee.FeatureCollection(ordinations_folder + nmds_evopca_fc_filename)
-nmds_evopca_cluster_fc = ee.FeatureCollection(ordinations_folder + 'ordinations_equal_area_cluster') 
+nmds_evopca_fc = ee.FeatureCollection(earthengine_folder + nmds_evopca_fc_filename)
+nmds_evopca_cluster_fc = ee.FeatureCollection(earthengine_folder + 'ordinations_equal_area_cluster') 
 
 unbounded_geo = ee.Geometry.Polygon([-180, 88, 0, 88, 180, 88, 180, -88, 0, -88, -180, -88], None, False)
 
@@ -57,18 +55,17 @@ wkt6933 = '   PROJCS["WGS 84 / NSIDC EASE-Grid 2.0 Global",       GEOGCS["WGS 84
 proj6933 = ee.Projection(wkt6933)
 
 sdms_area_lat_elev_filename = 'sdms_area_lat_elev'
-sdms_area_lat_elev_folder = 'users/ninavantiel/treemap/range_size/'
-sdms_area_lat_elev_fc = ee.FeatureCollection(sdms_area_lat_elev_folder + sdms_area_lat_elev_filename)
+sdms_area_lat_elev_fc = ee.FeatureCollection(earthengine_folder + sdms_area_lat_elev_filename)
 
-forest10_image = ee.Image('projects/crowtherlab/nina/treemap_figures/hansen_year2000').gte(10) 
-elevation = ee.Image('projects/crowtherlab/nina/treemap_figures/elevation_img') # https://www.earthenv.org/topography
-splot_data = ee.FeatureCollection('users/ninavantiel/treemap/sPlot_comparison/sPlot_data')
-splot_sample_folder = 'users/ninavantiel/treemap/sPlot_comparison/splot_sdm/'
+forest10_image = ee.Image(earthengine_folder + 'hansen_year2000').gte(10) 
+elevation = ee.Image(earthengine_folder + 'elevation_img') # https://www.earthenv.org/topography
+splot_data = ee.FeatureCollection(earthengine_folder + 'sPlot_comparison/sPlot_data')
+splot_sample_folder = earthengine_folder + 'sPlot_comparison/splot_sdm/'
 sdm_biome_drive_filename = 'sdm_biomes'
 
 # local directories and files
-datadir = '/Users/nina/Documents/treemap/treemap/data/'
-figuredir = '/Users/nina/Documents/treemap/treemap/figures/'
+datadir = 'path/to/your/data/dir/' # ** CHANGE THIS TO PATH TO YOUR DATA DIRECTORY **
+figuredir = 'path/to/your/figure/dir/' # ** CHANGE THIS TO PATH TO YOUR FIGURES DIRECTORY **
 
 validation_stats_file = datadir + 'sdm_stats_validation.csv'
 sdm_splot_file = datadir + 'sdm_splot_comparison.csv'

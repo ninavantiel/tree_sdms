@@ -3,7 +3,7 @@ library(tidyverse)
 library(data.table)
 
 # set working directory 
-setwd('/Users/nina/Documents/treemap/treemap/data/') 
+setwd('path/to/your/data/dir/') # ** CHANGE THIS TO PATH TO YOUR DATA DIRECTORY **
 
 # read dataframe with ordination and covariate values
 df <- as_tibble(read.csv('nmds_evopca_covariates_equal_area.csv')) %>% 

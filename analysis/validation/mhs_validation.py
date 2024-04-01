@@ -47,13 +47,4 @@ def get_iou(mhs_img):
 
 if __name__ == '__main__':
     results = mhs_ic.map(get_iou)
-    # dict = ee.Dictionary.fromLists(
-    #     results.aggregate_array('system:index'),results.aggregate_array('IoU')
-    # )
-    # fc = ee.FeatureCollection(ee.List.sequence(0,24).map(
-    #     lambda el: ee.Feature(None).set({
-    #         'system:index': ee.List(dict.keys()).get(el),
-    #         'IoU': ee.List(dict.values()).get(el)
-    #     })
-    # ))
     export_table_to_drive(results, 'SDM_MHS_IoU')
